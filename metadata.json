@@ -1,0 +1,6 @@
+{
+  "name": "AndroLog",
+  "description": "Precision TRT Tracker and Site Rotation Manager",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
