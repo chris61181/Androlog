@@ -132,8 +132,13 @@
       <!-- Injection History -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider">Recorded History</h3>
-          <span class="text-[11px] text-brand-muted" id="history-count">0 logged</span>
+          <div>
+            <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider">Recorded History</h3>
+            <span class="text-[11px] text-brand-muted" id="history-count">0 logged</span>
+          </div>
+          <button onclick="exportHistoryCSV()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-border active:scale-95 transition" title="Export injection history as CSV">
+            <span class="material-symbols-outlined text-sm">download</span> Export CSV
+          </button>
         </div>
         <div id="dose-history-list" class="space-y-2 text-sm">
           <p class="text-xs text-brand-muted text-center py-4">No doses logged yet. Use the form above to add your first pin.</p>
@@ -222,6 +227,40 @@
         </div>
       </div>
 
+      <!-- Active Injection Sites Management -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-white text-base flex items-center gap-2">
+            <span class="material-symbols-outlined text-brand-cyan">accessibility_new</span> Injection Sites
+          </h3>
+          <span class="text-[11px] text-brand-muted font-semibold" id="settings-sites-count">0 active</span>
+        </div>
+        <p class="text-xs text-brand-muted">Tap the remove icon (<span class="text-red-400 font-bold">×</span>) on any site to delete it from your rotation and logging dropdown.</p>
+
+        <div class="flex flex-wrap gap-2" id="settings-sites-chips">
+          <!-- Dynamically populated chips -->
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button onclick="setDeltoidsOnlyPreset()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-cyan/15 hover:bg-brand-cyan/25 text-brand-cyan border border-brand-cyan/30 transition active:scale-95 flex items-center gap-1.5" title="Set to only Right and Left Deltoids">
+            <span class="material-symbols-outlined text-sm">tune</span> Deltoids Only
+          </button>
+          <button onclick="resetDefaultSites()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-white border border-brand-border transition active:scale-95 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">restart_alt</span> Reset All Sites
+          </button>
+        </div>
+
+        <div class="pt-2 border-t border-brand-border/40">
+          <label class="text-brand-muted block text-xs mb-1.5 font-semibold">Add Custom Site</label>
+          <div class="flex gap-2">
+            <input type="text" id="settings-new-site-input" placeholder="e.g. Right Ventroglute" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan placeholder:text-brand-muted/50" onkeydown="if(event.key === 'Enter') addCustomSiteFromSettings()">
+            <button onclick="addCustomSiteFromSettings()" class="bg-brand-cyan hover:bg-sky-400 active:scale-95 transition text-brand-dark font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">add</span> Add
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- AccessLabs Values Editor -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <h3 class="font-bold text-white text-base flex items-center gap-2">
@@ -256,6 +295,9 @@
         <button onclick="saveSettings()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
           <span class="material-symbols-outlined text-lg">save</span> Save All Settings
         </button>
+        <button onclick="exportHistoryCSV()" class="w-full bg-brand-surface hover:bg-brand-card active:scale-[0.98] text-white border border-brand-border font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+          <span class="material-symbols-outlined text-base text-brand-cyan">file_download</span> Backup & Export Dose History (.csv)
+        </button>
         <button onclick="clearSampleData()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition">
           <span class="material-symbols-outlined text-base">delete_sweep</span> Clear All Doses & Start Fresh
         </button>
@@ -285,16 +327,102 @@
 
   <!-- Application Logic & Local Storage -->
   <script>
-    const ALL_SITES = [
-      'Right Ventroglute',
-      'Left Ventroglute',
+    const DEFAULT_SITES = [
       'Right Deltoid',
       'Left Deltoid',
+      'Right Ventroglute',
+      'Left Ventroglute',
       'Right Quad',
       'Left Quad',
       'Right Glute (Dorsal)',
-      'Left Glute (Dorsal)'
+      'Left Glute (Dorsal)',
+      'SubQ Abdomen'
     ];
+
+    function getSites() {
+      const cfg = getConfig();
+      if (Array.isArray(cfg.sites) && cfg.sites.length > 0) {
+        return cfg.sites;
+      }
+      const stored = localStorage.getItem('androlog_sites');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {}
+      }
+      return DEFAULT_SITES;
+    }
+
+    function saveSites(sites) {
+      const cfg = getConfig();
+      cfg.sites = sites;
+      saveConfig(cfg);
+      localStorage.setItem('androlog_sites', JSON.stringify(sites));
+    }
+
+    function deleteSite(siteName) {
+      const sites = getSites();
+      if (sites.length <= 1) {
+        showToast('You must keep at least one active injection site.');
+        return;
+      }
+      if (confirm(`Remove "${siteName}" from your active injection sites?`)) {
+        const updated = sites.filter(s => s !== siteName);
+        saveSites(updated);
+        updateUI();
+        showToast(`Removed ${siteName}`);
+      }
+    }
+
+    function setDeltoidsOnlyPreset() {
+      const delts = ['Right Deltoid', 'Left Deltoid'];
+      saveSites(delts);
+      updateUI();
+      showToast('Configured for Right & Left Deltoids only');
+    }
+
+    function resetDefaultSites() {
+      if (confirm('Reset to all 9 standard injection sites?')) {
+        saveSites(DEFAULT_SITES);
+        updateUI();
+        showToast('Reset to default injection sites');
+      }
+    }
+
+    function addCustomSite() {
+      const input = document.getElementById('new-site-input');
+      if (!input) return;
+      const name = input.value.trim();
+      if (!name) return;
+      const sites = getSites();
+      if (sites.some(s => s.toLowerCase() === name.toLowerCase())) {
+        showToast('This site is already in your list.');
+        return;
+      }
+      sites.push(name);
+      saveSites(sites);
+      input.value = '';
+      updateUI();
+      showToast(`Added ${name} to injection sites`);
+    }
+
+    function addCustomSiteFromSettings() {
+      const input = document.getElementById('settings-new-site-input');
+      if (!input) return;
+      const name = input.value.trim();
+      if (!name) return;
+      const sites = getSites();
+      if (sites.some(s => s.toLowerCase() === name.toLowerCase())) {
+        showToast('This site is already in your list.');
+        return;
+      }
+      sites.push(name);
+      saveSites(sites);
+      input.value = '';
+      updateUI();
+      showToast(`Added ${name} to injection sites`);
+    }
 
     const DEFAULT_CONFIG = {
       weeklyDose: 140,
@@ -455,12 +583,46 @@
       const setLabDateEl = document.getElementById('set-lab-date');
       if (setLabDateEl) setLabDateEl.value = cfg.labDate;
 
+      // Update Depot Site dropdown
+      const siteSelect = document.getElementById('input-site');
+      const activeSites = getSites();
+      if (siteSelect) {
+        const prevVal = siteSelect.value;
+        siteSelect.innerHTML = activeSites.map(s => `<option value="${s}">${s}</option>`).join('');
+        if (activeSites.includes(prevVal)) {
+          siteSelect.value = prevVal;
+        } else if (activeSites.length > 0) {
+          siteSelect.value = activeSites[0];
+        }
+      }
+
       // Update Site Rotation View
       updateSiteRotation(history);
     }
 
     function updateSiteRotation(history) {
       const container = document.getElementById('site-rotation-container');
+      const countEl = document.getElementById('sites-active-count');
+      const settingsCountEl = document.getElementById('settings-sites-count');
+      const settingsChipsEl = document.getElementById('settings-sites-chips');
+
+      const activeSites = getSites();
+
+      if (countEl) countEl.innerText = `${activeSites.length} active`;
+      if (settingsCountEl) settingsCountEl.innerText = `${activeSites.length} active`;
+
+      // Update Settings Chips
+      if (settingsChipsEl) {
+        settingsChipsEl.innerHTML = activeSites.map(s => `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-brand-surface text-white border border-brand-border">
+            <span>${s}</span>
+            <button onclick="deleteSite('${s.replace(/'/g, "\\'")}')" class="text-brand-muted hover:text-red-400 transition p-0.5 rounded flex items-center justify-center" title="Delete ${s}">
+              <span class="material-symbols-outlined text-[14px]">close</span>
+            </button>
+          </span>
+        `).join('');
+      }
+
       if (!container) return;
       container.innerHTML = '';
       const lastUsed = {};
@@ -471,15 +633,25 @@
       });
 
       // Sort sites: never used or oldest used first
-      const sortedSites = [...ALL_SITES].sort((a, b) => {
+      const sortedSites = [...activeSites].sort((a, b) => {
         const orderA = lastUsed[a] !== undefined ? lastUsed[a] : 999;
         const orderB = lastUsed[b] !== undefined ? lastUsed[b] : 999;
         return orderB - orderA; // higher number = older/rested
       });
 
       const nextSiteEl = document.getElementById('dash-next-site');
-      if (sortedSites.length > 0 && nextSiteEl) {
-        nextSiteEl.innerText = sortedSites[0];
+      if (nextSiteEl) {
+        nextSiteEl.innerText = sortedSites.length > 0 ? sortedSites[0] : 'None';
+      }
+
+      const siteSelect = document.getElementById('input-site');
+      if (siteSelect && sortedSites.length > 0 && !activeSites.includes(siteSelect.value)) {
+        siteSelect.value = sortedSites[0];
+      }
+
+      if (sortedSites.length === 0) {
+        container.innerHTML = '<p class="text-xs text-brand-muted text-center py-4">No active injection sites configured. Add a site below.</p>';
+        return;
       }
 
       sortedSites.forEach((site) => {
@@ -509,7 +681,12 @@
             </div>
             <span class="text-xs text-brand-muted">${subtext}</span>
           </div>
-          ${badge}
+          <div class="flex items-center gap-2">
+            ${badge}
+            <button onclick="deleteSite('${site.replace(/'/g, "\\'")}')" class="text-brand-muted hover:text-red-400 p-1.5 rounded-lg hover:bg-brand-dark/60 transition active:scale-90" title="Delete site from rotation">
+              <span class="material-symbols-outlined text-base block">delete</span>
+            </button>
+          </div>
         `;
         container.appendChild(div);
       });
@@ -572,6 +749,71 @@
       updateUI();
       showToast('Protocol and lab settings successfully updated!');
       switchTab('dashboard');
+    }
+
+    function exportHistoryCSV() {
+      const history = getHistory();
+      if (!history || history.length === 0) {
+        showToast('No injection records found to export.');
+        return;
+      }
+
+      const cfg = getConfig();
+      const headers = [
+        'Date (YYYY-MM-DD)',
+        'Time',
+        'Depot Site',
+        'Dose (mg)',
+        'Calculated Volume (mL)',
+        'Compound',
+        'Concentration (mg/mL)',
+        'ISO Timestamp'
+      ];
+
+      function escapeCSV(val) {
+        if (val === null || val === undefined) return '';
+        const str = String(val);
+        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+          return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+      }
+
+      const rows = history.map(item => {
+        const d = item.timestamp ? new Date(item.timestamp) : new Date();
+        const dateStr = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : (item.dateText || '');
+        const timeStr = !isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const site = item.site || '';
+        const dose = item.dose !== undefined ? item.dose : '';
+        const vol = (item.dose && cfg.concentration) ? (item.dose / cfg.concentration).toFixed(2) : '';
+        const compound = cfg.compound || 'Testosterone Cypionate';
+        const conc = cfg.concentration ? `${cfg.concentration}` : '';
+        const iso = !isNaN(d.getTime()) ? d.toISOString() : '';
+
+        return [
+          dateStr,
+          timeStr,
+          site,
+          dose,
+          vol,
+          compound,
+          conc,
+          iso
+        ].map(escapeCSV).join(',');
+      });
+
+      const csvContent = '\uFEFF' + [headers.map(escapeCSV).join(','), ...rows].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `androlog_trt_history_${dateStamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(`Exported ${history.length} dose record${history.length === 1 ? '' : 's'} to CSV`);
     }
 
     function clearSampleData() {
