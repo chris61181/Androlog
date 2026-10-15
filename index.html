@@ -33,7 +33,7 @@
           }
         }
       }
-    };
+    }
   </script>
   <style>
     body {
@@ -45,6 +45,7 @@
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between max-w-md mx-auto relative pb-24 select-none">
+
   <!-- Top App Header -->
   <header class="p-4 flex items-center justify-between border-b border-brand-border bg-brand-dark/80 backdrop-blur sticky top-0 z-30">
     <div class="flex items-center gap-3">
@@ -63,6 +64,7 @@
 
   <!-- Main View Area -->
   <main class="flex-1 p-4 space-y-4 overflow-y-auto">
+
     <!-- Tab 1: Dashboard & Quick Log -->
     <div id="view-dashboard" class="space-y-4">
       <!-- Protocol Overview Banner -->
@@ -93,35 +95,26 @@
       </div>
 
       <!-- Quick Log Dose Box -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
+      <div id="log-dose-card" class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="font-bold text-white text-sm flex items-center gap-2">
             <span class="material-symbols-outlined text-brand-cyan text-xl">syringe</span> Log Dose
           </h3>
-          <span class="text-xs text-brand-muted">Tap to confirm</span>
+          <button onclick="resetToNow()" class="text-[11px] text-brand-cyan hover:underline">Reset to Now</button>
         </div>
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div>
             <label class="text-brand-muted block mb-1">Dose (mg)</label>
-            <input type="number" id="input-dose" value="50" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+            <input type="number" id="input-dose" value="70" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
           </div>
           <div>
             <label class="text-brand-muted block mb-1">Depot Site</label>
             <select id="input-site" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-              <option value="Right Ventroglute">R. Ventroglute</option>
-              <option value="Left Ventroglute">L. Ventroglute</option>
-              <option value="Right Deltoid">R. Deltoid</option>
-              <option value="Left Deltoid">L. Deltoid</option>
-              <option value="Right Quad">R. Quad</option>
-              <option value="Left Quad">L. Quad</option>
-              <option value="Right Glute (Dorsal)">R. Glute</option>
-              <option value="Left Glute (Dorsal)">L. Glute</option>
-              <option value="SubQ Abdomen">SubQ Abdomen</option>
             </select>
           </div>
         </div>
         <div>
-          <label class="text-brand-muted block text-xs mb-1">Date & Time</label>
+          <label class="text-brand-muted block text-xs mb-1">Date & Time (Change to backdate missed pins)</label>
           <input type="datetime-local" id="input-date" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan">
         </div>
         <button onclick="logDose()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
@@ -132,13 +125,8 @@
       <!-- Injection History -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg">
         <div class="flex items-center justify-between mb-3">
-          <div>
-            <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider">Recorded History</h3>
-            <span class="text-[11px] text-brand-muted" id="history-count">0 logged</span>
-          </div>
-          <button onclick="exportHistoryCSV()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-border active:scale-95 transition" title="Export injection history as CSV">
-            <span class="material-symbols-outlined text-sm">download</span> Export CSV
-          </button>
+          <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider">Recorded History</h3>
+          <span class="text-[11px] text-brand-muted" id="history-count">0 logged</span>
         </div>
         <div id="dose-history-list" class="space-y-2 text-sm">
           <p class="text-xs text-brand-muted text-center py-4">No doses logged yet. Use the form above to add your first pin.</p>
@@ -146,18 +134,58 @@
       </div>
     </div>
 
-    <!-- Tab 2: Site Rotation -->
-    <div id="view-sites" class="space-y-4 hidden">
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
-        <h3 class="font-bold text-white text-base">Site Rotation Schedule</h3>
-        <p class="text-xs text-brand-muted mt-1">Rotate injection sites regularly to protect muscle tissue and optimize absorption.</p>
-        <div class="mt-4 space-y-2.5" id="site-rotation-container">
-          <!-- Dynamically populated -->
+    <!-- Tab 2: Interactive Calendar -->
+    <div id="view-calendar" class="space-y-4 hidden">
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+          <button onclick="changeMonth(-1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+          <h3 class="font-bold text-white text-base" id="cal-month-title">October 2026</h3>
+          <button onclick="changeMonth(1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-brand-muted mb-2">
+          <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+        </div>
+        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 text-center text-xs">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Selected Day Details & Missed Pin Trigger -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-bold text-brand-cyan uppercase tracking-wider" id="cal-selected-label">Selected Date</h4>
+          <button onclick="jumpToLogForSelectedDate()" class="text-xs font-bold bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 px-2.5 py-1 rounded-lg hover:bg-brand-cyan hover:text-brand-dark transition flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">add</span> Log Pin on This Day
+          </button>
+        </div>
+        <div id="cal-day-logs" class="space-y-2 text-xs">
+          <p class="text-brand-muted py-2">Tap any date above to view or add injections.</p>
         </div>
       </div>
     </div>
 
-    <!-- Tab 3: AccessLabs Biomarkers -->
+    <!-- Tab 3: Site Rotation -->
+    <div id="view-sites" class="space-y-4 hidden">
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="font-bold text-white text-base">Site Rotation Schedule</h3>
+            <p class="text-xs text-brand-muted mt-1">Sorted automatically: optimal & longest-rested sites at the top.</p>
+          </div>
+          <button onclick="switchTab('settings')" class="text-xs text-brand-cyan hover:underline flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">edit</span> Sites
+          </button>
+        </div>
+        <div class="mt-4 space-y-2.5" id="site-rotation-container"></div>
+      </div>
+    </div>
+
+    <!-- Tab 4: AccessLabs Biomarkers -->
     <div id="view-labs" class="space-y-4 hidden">
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
         <div class="flex justify-between items-start">
@@ -188,7 +216,7 @@
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
             <span class="text-xs text-brand-muted block">Hematocrit (HCT)</span>
             <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-hct">47.2 <span class="text-xs font-normal text-brand-muted">%</span></span>
-            <span class="text-[11px] text-emerald-400 font-medium">Safe (&lt; 52.0%)</span>
+            <span class="text-[11px] text-emerald-400 font-medium" id="disp-lab-hct-status">Safe (&lt; 52.0%)</span>
           </div>
         </div>
         <div class="mt-4 p-3 rounded-xl bg-brand-surface border border-brand-border/60 text-xs text-brand-muted flex items-center justify-between">
@@ -198,8 +226,21 @@
       </div>
     </div>
 
-    <!-- Tab 4: Settings & Protocol -->
+    <!-- Tab 5: Settings, Site Manager & Backup -->
     <div id="view-settings" class="space-y-4 hidden">
+      
+      <!-- Manage Custom Injection Sites -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <span class="material-symbols-outlined text-brand-cyan">accessibility_new</span> Custom Injection Sites
+        </h3>
+        <div id="settings-site-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+        <div class="flex gap-2 text-xs pt-1">
+          <input type="text" id="new-site-name" placeholder="Add site (e.g. Left Lat)" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-brand-cyan">
+          <button onclick="addSite()" class="bg-brand-cyan text-brand-dark px-4 rounded-xl font-bold hover:bg-sky-400 transition">Add</button>
+        </div>
+      </div>
+
       <!-- Protocol & Compound Settings -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <h3 class="font-bold text-white text-base flex items-center gap-2">
@@ -221,42 +262,8 @@
             </div>
             <div>
               <label class="text-brand-muted block mb-1">Current Vial Vol. (mL)</label>
-              <input type="number" step="0.1" id="set-vial-vol" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+              <input type="number" step="0.05" id="set-vial-vol" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Injection Sites Management -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-white text-base flex items-center gap-2">
-            <span class="material-symbols-outlined text-brand-cyan">accessibility_new</span> Injection Sites
-          </h3>
-          <span class="text-[11px] text-brand-muted font-semibold" id="settings-sites-count">0 active</span>
-        </div>
-        <p class="text-xs text-brand-muted">Tap the remove icon (<span class="text-red-400 font-bold">×</span>) on any site to delete it from your rotation and logging dropdown.</p>
-
-        <div class="flex flex-wrap gap-2" id="settings-sites-chips">
-          <!-- Dynamically populated chips -->
-        </div>
-
-        <div class="flex items-center gap-2 pt-1">
-          <button onclick="setDeltoidsOnlyPreset()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-cyan/15 hover:bg-brand-cyan/25 text-brand-cyan border border-brand-cyan/30 transition active:scale-95 flex items-center gap-1.5" title="Set to only Right and Left Deltoids">
-            <span class="material-symbols-outlined text-sm">tune</span> Deltoids Only
-          </button>
-          <button onclick="resetDefaultSites()" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-white border border-brand-border transition active:scale-95 flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-sm">restart_alt</span> Reset All Sites
-          </button>
-        </div>
-
-        <div class="pt-2 border-t border-brand-border/40">
-          <label class="text-brand-muted block text-xs mb-1.5 font-semibold">Add Custom Site</label>
-          <div class="flex gap-2">
-            <input type="text" id="settings-new-site-input" placeholder="e.g. Right Ventroglute" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan placeholder:text-brand-muted/50" onkeydown="if(event.key === 'Enter') addCustomSiteFromSettings()">
-            <button onclick="addCustomSiteFromSettings()" class="bg-brand-cyan hover:bg-sky-400 active:scale-95 transition text-brand-dark font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">add</span> Add
-            </button>
           </div>
         </div>
       </div>
@@ -286,30 +293,43 @@
         </div>
         <div>
           <label class="text-brand-muted block text-xs mb-1">Lab Date Description</label>
-          <input type="text" id="set-lab-date" placeholder="e.g. October 2024" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan">
+          <input type="text" id="set-lab-date" placeholder="e.g. October 2026" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan">
         </div>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Save & Backup Actions -->
       <div class="space-y-2 pt-2">
         <button onclick="saveSettings()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
           <span class="material-symbols-outlined text-lg">save</span> Save All Settings
         </button>
-        <button onclick="exportHistoryCSV()" class="w-full bg-brand-surface hover:bg-brand-card active:scale-[0.98] text-white border border-brand-border font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition">
-          <span class="material-symbols-outlined text-base text-brand-cyan">file_download</span> Backup & Export Dose History (.csv)
-        </button>
-        <button onclick="clearSampleData()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+        
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button onclick="exportData()" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+            <span class="material-symbols-outlined text-sm text-brand-cyan">download</span> Export Backup
+          </button>
+          <label class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+            <span class="material-symbols-outlined text-sm text-emerald-400">upload</span> Restore Backup
+            <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="hidden">
+          </label>
+        </div>
+
+        <button onclick="clearSampleData()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mt-2">
           <span class="material-symbols-outlined text-base">delete_sweep</span> Clear All Doses & Start Fresh
         </button>
       </div>
     </div>
+
   </main>
 
-  <!-- Bottom Navigation (4 Tabs) -->
-  <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-brand-dark/95 backdrop-blur border-t border-brand-border grid grid-cols-4 py-2 px-2 z-40">
+  <!-- Bottom Navigation (5 Tabs) -->
+  <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-brand-dark/95 backdrop-blur border-t border-brand-border grid grid-cols-5 py-2 px-1 z-40">
     <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex flex-col items-center gap-1 text-brand-cyan transition">
       <span class="material-symbols-outlined text-xl">dashboard</span>
-      <span class="text-[10px] font-bold">Log & Home</span>
+      <span class="text-[10px] font-bold">Home</span>
+    </button>
+    <button onclick="switchTab('calendar')" id="tab-calendar" class="flex flex-col items-center gap-1 text-brand-muted transition">
+      <span class="material-symbols-outlined text-xl">calendar_month</span>
+      <span class="text-[10px] font-bold">Calendar</span>
     </button>
     <button onclick="switchTab('sites')" id="tab-sites" class="flex flex-col items-center gap-1 text-brand-muted transition">
       <span class="material-symbols-outlined text-xl">accessibility_new</span>
@@ -317,7 +337,7 @@
     </button>
     <button onclick="switchTab('labs')" id="tab-labs" class="flex flex-col items-center gap-1 text-brand-muted transition">
       <span class="material-symbols-outlined text-xl">biotechnology</span>
-      <span class="text-[10px] font-bold">AccessLabs</span>
+      <span class="text-[10px] font-bold">Labs</span>
     </button>
     <button onclick="switchTab('settings')" id="tab-settings" class="flex flex-col items-center gap-1 text-brand-muted transition">
       <span class="material-symbols-outlined text-xl">settings</span>
@@ -325,104 +345,14 @@
     </button>
   </nav>
 
-  <!-- Application Logic & Local Storage -->
   <script>
     const DEFAULT_SITES = [
-      'Right Deltoid',
-      'Left Deltoid',
-      'Right Ventroglute',
-      'Left Ventroglute',
-      'Right Quad',
-      'Left Quad',
-      'Right Glute (Dorsal)',
-      'Left Glute (Dorsal)',
+      'Right Ventroglute', 'Left Ventroglute',
+      'Right Deltoid', 'Left Deltoid',
+      'Right Quad', 'Left Quad',
+      'Right Glute (Dorsal)', 'Left Glute (Dorsal)',
       'SubQ Abdomen'
     ];
-
-    function getSites() {
-      const cfg = getConfig();
-      if (Array.isArray(cfg.sites) && cfg.sites.length > 0) {
-        return cfg.sites;
-      }
-      const stored = localStorage.getItem('androlog_sites');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        } catch (e) {}
-      }
-      return DEFAULT_SITES;
-    }
-
-    function saveSites(sites) {
-      const cfg = getConfig();
-      cfg.sites = sites;
-      saveConfig(cfg);
-      localStorage.setItem('androlog_sites', JSON.stringify(sites));
-    }
-
-    function deleteSite(siteName) {
-      const sites = getSites();
-      if (sites.length <= 1) {
-        showToast('You must keep at least one active injection site.');
-        return;
-      }
-      if (confirm(`Remove "${siteName}" from your active injection sites?`)) {
-        const updated = sites.filter(s => s !== siteName);
-        saveSites(updated);
-        updateUI();
-        showToast(`Removed ${siteName}`);
-      }
-    }
-
-    function setDeltoidsOnlyPreset() {
-      const delts = ['Right Deltoid', 'Left Deltoid'];
-      saveSites(delts);
-      updateUI();
-      showToast('Configured for Right & Left Deltoids only');
-    }
-
-    function resetDefaultSites() {
-      if (confirm('Reset to all 9 standard injection sites?')) {
-        saveSites(DEFAULT_SITES);
-        updateUI();
-        showToast('Reset to default injection sites');
-      }
-    }
-
-    function addCustomSite() {
-      const input = document.getElementById('new-site-input');
-      if (!input) return;
-      const name = input.value.trim();
-      if (!name) return;
-      const sites = getSites();
-      if (sites.some(s => s.toLowerCase() === name.toLowerCase())) {
-        showToast('This site is already in your list.');
-        return;
-      }
-      sites.push(name);
-      saveSites(sites);
-      input.value = '';
-      updateUI();
-      showToast(`Added ${name} to injection sites`);
-    }
-
-    function addCustomSiteFromSettings() {
-      const input = document.getElementById('settings-new-site-input');
-      if (!input) return;
-      const name = input.value.trim();
-      if (!name) return;
-      const sites = getSites();
-      if (sites.some(s => s.toLowerCase() === name.toLowerCase())) {
-        showToast('This site is already in your list.');
-        return;
-      }
-      sites.push(name);
-      saveSites(sites);
-      input.value = '';
-      updateUI();
-      showToast(`Added ${name} to injection sites`);
-    }
 
     const DEFAULT_CONFIG = {
       weeklyDose: 140,
@@ -435,6 +365,39 @@
       labHct: 47.2,
       labDate: 'Recent Lab Panel'
     };
+
+    let calYear = new Date().getFullYear();
+    let calMonth = new Date().getMonth();
+    let selectedCalDateStr = new Date().toISOString().slice(0, 10);
+
+    function getSites() {
+      const stored = localStorage.getItem('androlog_sites');
+      return stored ? JSON.parse(stored) : DEFAULT_SITES;
+    }
+
+    function saveSites(sites) {
+      localStorage.setItem('androlog_sites', JSON.stringify(sites));
+      updateUI();
+    }
+
+    function addSite() {
+      const input = document.getElementById('new-site-name');
+      const val = input.value.trim();
+      if (!val) return;
+      const sites = getSites();
+      if (!sites.includes(val)) {
+        sites.push(val);
+        saveSites(sites);
+      }
+      input.value = '';
+    }
+
+    function removeSite(siteName) {
+      if (confirm(`Remove "${siteName}" from your rotation list?`)) {
+        const sites = getSites().filter(s => s !== siteName);
+        saveSites(sites);
+      }
+    }
 
     function getConfig() {
       const stored = localStorage.getItem('androlog_config');
@@ -451,215 +414,162 @@
     }
 
     function saveHistory(hist) {
+      hist.sort((a, b) => b.timestamp - a.timestamp);
       localStorage.setItem('androlog_doses', JSON.stringify(hist));
     }
 
     function resetToNow() {
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      const inputDate = document.getElementById('input-date');
-      if (inputDate) {
-        inputDate.value = now.toISOString().slice(0, 16);
-      }
+      document.getElementById('input-date').value = now.toISOString().slice(0, 16);
     }
 
-    function showToast(message) {
-      const existing = document.getElementById('androlog-toast');
-      if (existing) existing.remove();
-
-      const toast = document.createElement('div');
-      toast.id = 'androlog-toast';
-      toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-brand-card text-white px-4 py-2.5 rounded-xl border border-brand-cyan/40 shadow-xl text-xs font-bold transition-all duration-300';
-      toast.innerText = message;
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 2500);
+    function formatDateText(dateObj) {
+      return dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+             dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function updateUI() {
       const cfg = getConfig();
       const history = getHistory();
+      const sites = getSites();
+
+      // Populate Site Dropdown
+      const siteSelect = document.getElementById('input-site');
+      const prevSite = siteSelect.value;
+      siteSelect.innerHTML = '';
+      sites.forEach(s => {
+        siteSelect.innerHTML += `<option value="${s}">${s}</option>`;
+      });
+      if (sites.includes(prevSite)) siteSelect.value = prevSite;
+
+      // Populate Custom Site Manager List
+      const siteManageEl = document.getElementById('settings-site-list');
+      siteManageEl.innerHTML = '';
+      sites.forEach((s, idx) => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center bg-brand-surface border border-brand-border px-3 py-1.5 rounded-xl text-xs';
+        row.innerHTML = `
+          <span class="text-white font-semibold">${s}</span>
+          <button onclick="removeSiteIndex(${idx})" class="text-red-400 hover:text-red-300 p-1">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>`;
+        siteManageEl.appendChild(row);
+      });
 
       // Update Dashboard Protocol
-      const weeklyDoseEl = document.getElementById('dash-weekly-dose');
-      if (weeklyDoseEl) weeklyDoseEl.innerText = `${cfg.weeklyDose} mg / week`;
-
-      const compoundEl = document.getElementById('dash-compound');
-      if (compoundEl) compoundEl.innerText = `${cfg.compound} (${cfg.concentration} mg/mL)`;
-
-      const vialVolEl = document.getElementById('dash-vial-vol');
-      if (vialVolEl) vialVolEl.innerText = `${parseFloat(cfg.vialVolume).toFixed(1)} mL`;
+      document.getElementById('dash-weekly-dose').innerText = `${cfg.weeklyDose} mg / week`;
+      document.getElementById('dash-compound').innerText = `${cfg.compound} (${cfg.concentration} mg/mL)`;
+      document.getElementById('dash-vial-vol').innerText = `${parseFloat(cfg.vialVolume).toFixed(2)} mL`;
 
       const avgPinMg = (cfg.weeklyDose / 2) || 50;
       const mlPerPin = avgPinMg / cfg.concentration;
       const remainingDoses = mlPerPin > 0 ? Math.floor(cfg.vialVolume / mlPerPin) : 0;
-      const vialDosesEl = document.getElementById('dash-vial-doses');
-      if (vialDosesEl) vialDosesEl.innerText = `~${remainingDoses} doses left`;
+      document.getElementById('dash-vial-doses').innerText = `~${remainingDoses} doses left`;
 
       // Update Last Pin
-      const lastDateEl = document.getElementById('dash-last-date');
-      const lastSiteEl = document.getElementById('dash-last-site');
       if (history.length > 0) {
         const last = history[0];
-        if (lastDateEl) lastDateEl.innerText = last.dateText || 'Recently';
-        if (lastSiteEl) lastSiteEl.innerText = `${last.site} (${last.dose}mg)`;
+        document.getElementById('dash-last-date').innerText = last.dateText || 'Recently';
+        document.getElementById('dash-last-site').innerText = `${last.site} (${last.dose}mg)`;
       } else {
-        if (lastDateEl) lastDateEl.innerText = 'No pins yet';
-        if (lastSiteEl) lastSiteEl.innerText = 'Tap below to log';
+        document.getElementById('dash-last-date').innerText = 'No pins yet';
+        document.getElementById('dash-last-site').innerText = 'Tap below to log';
       }
 
       // Update History List
       const listEl = document.getElementById('dose-history-list');
-      const countEl = document.getElementById('history-count');
-      if (countEl) countEl.innerText = `${history.length} logged`;
-      if (listEl) {
-        if (history.length === 0) {
-          listEl.innerHTML = '<p class="text-xs text-brand-muted text-center py-4">No doses logged yet. Use the form above to add your first pin.</p>';
-        } else {
-          listEl.innerHTML = '';
-          history.forEach((item, idx) => {
-            const row = document.createElement('div');
-            row.className = 'flex items-center justify-between py-2 border-b border-brand-border/40 last:border-0';
-            row.innerHTML = `
-              <div>
-                <span class="font-bold text-white block text-xs">${item.site}</span>
-                <span class="text-[11px] text-brand-muted">${item.dateText}</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-brand-cyan text-xs bg-brand-cyan/10 px-2 py-0.5 rounded border border-brand-cyan/20">${item.dose} mg</span>
-                <button onclick="deleteDose(${idx})" class="text-brand-muted hover:text-red-400 p-1" title="Delete">
-                  <span class="material-symbols-outlined text-sm">delete</span>
-                </button>
-              </div>
-            `;
-            listEl.appendChild(row);
-          });
-        }
+      document.getElementById('history-count').innerText = `${history.length} logged`;
+
+      if (history.length === 0) {
+        listEl.innerHTML = `<p class="text-xs text-brand-muted text-center py-4">No doses logged yet. Use the form above to add your first pin.</p>`;
+      } else {
+        listEl.innerHTML = '';
+        history.forEach((item, idx) => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between py-2 border-b border-brand-border/40 last:border-0';
+          row.innerHTML = `
+            <div>
+              <span class="font-bold text-white block text-xs">${item.site}</span>
+              <span class="text-[11px] text-brand-muted">${item.dateText}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="font-bold text-brand-cyan text-xs bg-brand-cyan/10 px-2 py-0.5 rounded border border-brand-cyan/20">${item.dose} mg</span>
+              <button onclick="editDose(${idx})" class="text-brand-muted hover:text-brand-cyan p-1" title="Edit Pin">
+                <span class="material-symbols-outlined text-sm">edit</span>
+              </button>
+              <button onclick="deleteDose(${idx})" class="text-brand-muted hover:text-red-400 p-1" title="Delete Pin">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
+          `;
+          listEl.appendChild(row);
+        });
       }
 
       // Update Labs Display
-      const labTotTEl = document.getElementById('disp-lab-tot-t');
-      if (labTotTEl) labTotTEl.innerHTML = `${cfg.labTotalT} <span class="text-xs font-normal text-brand-muted">ng/dL</span>`;
-
-      const labFreeTEl = document.getElementById('disp-lab-free-t');
-      if (labFreeTEl) labFreeTEl.innerHTML = `${cfg.labFreeT} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
-
-      const labE2El = document.getElementById('disp-lab-e2');
-      if (labE2El) labE2El.innerHTML = `${cfg.labE2} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
-
-      const labHctEl = document.getElementById('disp-lab-hct');
-      if (labHctEl) labHctEl.innerHTML = `${cfg.labHct} <span class="text-xs font-normal text-brand-muted">%</span>`;
-
-      const labDateEl = document.getElementById('disp-lab-date');
-      if (labDateEl) labDateEl.innerText = cfg.labDate || 'Recent';
+      document.getElementById('disp-lab-tot-t').innerHTML = `${cfg.labTotalT} <span class="text-xs font-normal text-brand-muted">ng/dL</span>`;
+      document.getElementById('disp-lab-free-t').innerHTML = `${cfg.labFreeT} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
+      document.getElementById('disp-lab-e2').innerHTML = `${cfg.labE2} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
+      document.getElementById('disp-lab-hct').innerHTML = `${cfg.labHct} <span class="text-xs font-normal text-brand-muted">%</span>`;
+      const hctStatus = document.getElementById('disp-lab-hct-status');
+      if (parseFloat(cfg.labHct) >= 52.0) {
+        hctStatus.className = 'text-[11px] text-red-400 font-medium';
+        hctStatus.innerText = 'Elevated (≥ 52.0%)';
+      } else {
+        hctStatus.className = 'text-[11px] text-emerald-400 font-medium';
+        hctStatus.innerText = 'Safe (< 52.0%)';
+      }
+      document.getElementById('disp-lab-date').innerText = cfg.labDate || 'Recent';
 
       // Update Settings Inputs
-      const setWeeklyDoseEl = document.getElementById('set-weekly-dose');
-      if (setWeeklyDoseEl) setWeeklyDoseEl.value = cfg.weeklyDose;
+      document.getElementById('set-weekly-dose').value = cfg.weeklyDose;
+      document.getElementById('set-compound').value = cfg.compound;
+      document.getElementById('set-concentration').value = cfg.concentration;
+      document.getElementById('set-vial-vol').value = cfg.vialVolume;
+      document.getElementById('set-lab-tot-t').value = cfg.labTotalT;
+      document.getElementById('set-lab-free-t').value = cfg.labFreeT;
+      document.getElementById('set-lab-e2').value = cfg.labE2;
+      document.getElementById('set-lab-hct').value = cfg.labHct;
+      document.getElementById('set-lab-date').value = cfg.labDate;
 
-      const setCompoundEl = document.getElementById('set-compound');
-      if (setCompoundEl) setCompoundEl.value = cfg.compound;
-
-      const setConcentrationEl = document.getElementById('set-concentration');
-      if (setConcentrationEl) setConcentrationEl.value = cfg.concentration;
-
-      const setVialVolEl = document.getElementById('set-vial-vol');
-      if (setVialVolEl) setVialVolEl.value = cfg.vialVolume;
-
-      const setLabTotTEl = document.getElementById('set-lab-tot-t');
-      if (setLabTotTEl) setLabTotTEl.value = cfg.labTotalT;
-
-      const setLabFreeTEl = document.getElementById('set-lab-free-t');
-      if (setLabFreeTEl) setLabFreeTEl.value = cfg.labFreeT;
-
-      const setLabE2El = document.getElementById('set-lab-e2');
-      if (setLabE2El) setLabE2El.value = cfg.labE2;
-
-      const setLabHctEl = document.getElementById('set-lab-hct');
-      if (setLabHctEl) setLabHctEl.value = cfg.labHct;
-
-      const setLabDateEl = document.getElementById('set-lab-date');
-      if (setLabDateEl) setLabDateEl.value = cfg.labDate;
-
-      // Update Depot Site dropdown
-      const siteSelect = document.getElementById('input-site');
-      const activeSites = getSites();
-      if (siteSelect) {
-        const prevVal = siteSelect.value;
-        siteSelect.innerHTML = activeSites.map(s => `<option value="${s}">${s}</option>`).join('');
-        if (activeSites.includes(prevVal)) {
-          siteSelect.value = prevVal;
-        } else if (activeSites.length > 0) {
-          siteSelect.value = activeSites[0];
-        }
-      }
-
-      // Update Site Rotation View
-      updateSiteRotation(history);
+      updateSiteRotation(history, sites);
+      renderCalendar();
     }
 
-    function updateSiteRotation(history) {
+    function removeSiteIndex(idx) {
+      const sites = getSites();
+      removeSite(sites[idx]);
+    }
+
+    function updateSiteRotation(history, sites) {
       const container = document.getElementById('site-rotation-container');
-      const countEl = document.getElementById('sites-active-count');
-      const settingsCountEl = document.getElementById('settings-sites-count');
-      const settingsChipsEl = document.getElementById('settings-sites-chips');
-
-      const activeSites = getSites();
-
-      if (countEl) countEl.innerText = `${activeSites.length} active`;
-      if (settingsCountEl) settingsCountEl.innerText = `${activeSites.length} active`;
-
-      // Update Settings Chips
-      if (settingsChipsEl) {
-        settingsChipsEl.innerHTML = activeSites.map(s => `
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-brand-surface text-white border border-brand-border">
-            <span>${s}</span>
-            <button onclick="deleteSite('${s.replace(/'/g, "\\'")}')" class="text-brand-muted hover:text-red-400 transition p-0.5 rounded flex items-center justify-center" title="Delete ${s}">
-              <span class="material-symbols-outlined text-[14px]">close</span>
-            </button>
-          </span>
-        `).join('');
-      }
-
-      if (!container) return;
       container.innerHTML = '';
       const lastUsed = {};
       history.forEach((h, index) => {
         if (!lastUsed[h.site]) {
-          lastUsed[h.site] = index + 1; // 1 = most recent pin
+          lastUsed[h.site] = index + 1;
         }
       });
 
-      // Sort sites: never used or oldest used first
-      const sortedSites = [...activeSites].sort((a, b) => {
+      const sortedSites = [...sites].sort((a, b) => {
         const orderA = lastUsed[a] !== undefined ? lastUsed[a] : 999;
         const orderB = lastUsed[b] !== undefined ? lastUsed[b] : 999;
-        return orderB - orderA; // higher number = older/rested
+        return orderB - orderA;
       });
 
-      const nextSiteEl = document.getElementById('dash-next-site');
-      if (nextSiteEl) {
-        nextSiteEl.innerText = sortedSites.length > 0 ? sortedSites[0] : 'None';
+      if (sortedSites.length > 0) {
+        document.getElementById('dash-next-site').innerText = sortedSites[0];
+        document.getElementById('input-site').value = sortedSites[0];
       }
 
-      const siteSelect = document.getElementById('input-site');
-      if (siteSelect && sortedSites.length > 0 && !activeSites.includes(siteSelect.value)) {
-        siteSelect.value = sortedSites[0];
-      }
-
-      if (sortedSites.length === 0) {
-        container.innerHTML = '<p class="text-xs text-brand-muted text-center py-4">No active injection sites configured. Add a site below.</p>';
-        return;
-      }
-
-      sortedSites.forEach((site) => {
+      sortedSites.forEach(site => {
         const rank = lastUsed[site];
         let badge = '<span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Optimal / Rested</span>';
         let borderColor = 'border-emerald-500/30';
         let dotColor = 'bg-emerald-400';
         let subtext = 'Ready for injection';
+
         if (rank === 1) {
           badge = '<span class="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">Most Recent</span>';
           borderColor = 'border-amber-500/30';
@@ -671,6 +581,7 @@
           dotColor = 'bg-sky-400';
           subtext = '2nd to last pin';
         }
+
         const div = document.createElement('div');
         div.className = `flex items-center justify-between p-3 rounded-xl bg-brand-surface border ${borderColor}`;
         div.innerHTML = `
@@ -681,52 +592,181 @@
             </div>
             <span class="text-xs text-brand-muted">${subtext}</span>
           </div>
-          <div class="flex items-center gap-2">
-            ${badge}
-            <button onclick="deleteSite('${site.replace(/'/g, "\\'")}')" class="text-brand-muted hover:text-red-400 p-1.5 rounded-lg hover:bg-brand-dark/60 transition active:scale-90" title="Delete site from rotation">
-              <span class="material-symbols-outlined text-base block">delete</span>
-            </button>
-          </div>
+          ${badge}
         `;
         container.appendChild(div);
       });
     }
 
-    function logDose() {
-      const doseEl = document.getElementById('input-dose');
-      const siteEl = document.getElementById('input-site');
-      const dateEl = document.getElementById('input-date');
+    // Calendar Logic
+    function changeMonth(delta) {
+      calMonth += delta;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    }
 
-      const doseMg = parseFloat(doseEl ? doseEl.value : '0') || 0;
-      const site = siteEl ? siteEl.value : 'Right Ventroglute';
-      const rawDate = dateEl ? dateEl.value : '';
+    function toLocalYMD(timestamp) {
+      const d = new Date(timestamp);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function renderCalendar() {
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('cal-month-title').innerText = `${monthNames[calMonth]} ${calYear}`;
+
+      const firstDay = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const history = getHistory();
+
+      // Map pins by YYYY-MM-DD
+      const pinMap = {};
+      history.forEach((h, idx) => {
+        const ymd = toLocalYMD(h.timestamp);
+        if (!pinMap[ymd]) pinMap[ymd] = [];
+        pinMap[ymd].push({ ...h, idx });
+      });
+
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const ymd = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const hasPins = pinMap[ymd] && pinMap[ymd].length > 0;
+        const isSelected = ymd === selectedCalDateStr;
+
+        const baseStyle = isSelected
+          ? 'bg-brand-cyan text-brand-dark font-bold border-brand-cyan'
+          : hasPins
+            ? 'bg-brand-surface text-white font-bold border-brand-cyan/60'
+            : 'bg-brand-surface/50 text-brand-muted border-brand-border/40';
+
+        const dot = hasPins
+          ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : 'bg-brand-cyan'} mx-auto mt-0.5 block"></span>`
+          : `<span class="w-1.5 h-1.5 mx-auto mt-0.5 block"></span>`;
+
+        grid.innerHTML += `
+          <button onclick="selectCalendarDate('${ymd}')" class="py-2 rounded-xl border ${baseStyle} flex flex-col items-center justify-center transition">
+            <span>${day}</span>
+            ${dot}
+          </button>
+        `;
+      }
+
+      renderSelectedDayLogs(pinMap[selectedCalDateStr] || []);
+    }
+
+    function selectCalendarDate(ymd) {
+      selectedCalDateStr = ymd;
+      renderCalendar();
+    }
+
+    function renderSelectedDayLogs(dayLogs) {
+      document.getElementById('cal-selected-label').innerText = `Pins on ${selectedCalDateStr}`;
+      const container = document.getElementById('cal-day-logs');
+      if (dayLogs.length === 0) {
+        container.innerHTML = `<p class="text-brand-muted py-2">No injections logged on this date.</p>`;
+        return;
+      }
+      container.innerHTML = '';
+      dayLogs.forEach(item => {
+        container.innerHTML += `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-brand-surface border border-brand-border">
+            <div>
+              <span class="font-bold text-white block">${item.site}</span>
+              <span class="text-[11px] text-brand-muted">${item.dateText}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="font-bold text-brand-cyan px-2 py-0.5 rounded bg-brand-cyan/10">${item.dose} mg</span>
+              <button onclick="editDose(${item.idx})" class="text-brand-muted hover:text-brand-cyan p-1">
+                <span class="material-symbols-outlined text-sm">edit</span>
+              </button>
+              <button onclick="deleteDose(${item.idx})" class="text-brand-muted hover:text-red-400 p-1">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function jumpToLogForSelectedDate() {
+      document.getElementById('input-date').value = `${selectedCalDateStr}T09:00`;
+      switchTab('dashboard');
+      document.getElementById('log-dose-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function logDose() {
+      const doseMg = parseFloat(document.getElementById('input-dose').value) || 0;
+      const site = document.getElementById('input-site').value;
+      const rawDate = document.getElementById('input-date').value;
 
       if (doseMg <= 0) {
-        showToast('Please enter a valid dose in mg.');
+        alert('Please enter a valid dose in mg.');
         return;
       }
 
       const dateObj = rawDate ? new Date(rawDate) : new Date();
-      const dateText = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateText = formatDateText(dateObj);
 
-      // Deduct from vial
       const cfg = getConfig();
       const mlInjected = doseMg / cfg.concentration;
       cfg.vialVolume = Math.max(0, cfg.vialVolume - mlInjected);
       saveConfig(cfg);
 
       const history = getHistory();
-      history.unshift({ dose: doseMg, site: site, dateText: dateText, timestamp: dateObj.getTime() });
+      history.push({
+        dose: doseMg,
+        site: site,
+        dateText: dateText,
+        timestamp: dateObj.getTime()
+      });
       saveHistory(history);
 
       updateUI();
       resetToNow();
-      showToast(`Saved! Logged ${doseMg}mg into ${site}. Vial updated.`);
+    }
+
+    function editDose(idx) {
+      const history = getHistory();
+      const entry = history[idx];
+      if (!entry) return;
+
+      const newDoseStr = prompt(`Edit Dose (mg):`, entry.dose);
+      if (newDoseStr === null) return;
+      const newDose = parseFloat(newDoseStr);
+      if (isNaN(newDose) || newDose <= 0) return alert('Invalid dose amount.');
+
+      const newSite = prompt(`Edit Injection Site:`, entry.site);
+      if (newSite === null || !newSite.trim()) return;
+
+      const cfg = getConfig();
+      const oldMl = entry.dose / cfg.concentration;
+      const newMl = newDose / cfg.concentration;
+      cfg.vialVolume = Math.max(0, cfg.vialVolume + oldMl - newMl);
+      saveConfig(cfg);
+
+      entry.dose = newDose;
+      entry.site = newSite.trim();
+      saveHistory(history);
+      updateUI();
     }
 
     function deleteDose(idx) {
-      if (confirm('Delete this dose entry?')) {
+      if (confirm('Delete this dose entry? Volume will be refunded to your vial.')) {
         const history = getHistory();
+        const cfg = getConfig();
+        const refundMl = history[idx].dose / cfg.concentration;
+        cfg.vialVolume += refundMl;
+        saveConfig(cfg);
+
         history.splice(idx, 1);
         saveHistory(history);
         updateUI();
@@ -747,96 +787,61 @@
       };
       saveConfig(cfg);
       updateUI();
-      showToast('Protocol and lab settings successfully updated!');
       switchTab('dashboard');
     }
 
-    function exportHistoryCSV() {
-      const history = getHistory();
-      if (!history || history.length === 0) {
-        showToast('No injection records found to export.');
-        return;
-      }
-
-      const cfg = getConfig();
-      const headers = [
-        'Date (YYYY-MM-DD)',
-        'Time',
-        'Depot Site',
-        'Dose (mg)',
-        'Calculated Volume (mL)',
-        'Compound',
-        'Concentration (mg/mL)',
-        'ISO Timestamp'
-      ];
-
-      function escapeCSV(val) {
-        if (val === null || val === undefined) return '';
-        const str = String(val);
-        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-          return '"' + str.replace(/"/g, '""') + '"';
-        }
-        return str;
-      }
-
-      const rows = history.map(item => {
-        const d = item.timestamp ? new Date(item.timestamp) : new Date();
-        const dateStr = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : (item.dateText || '');
-        const timeStr = !isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-        const site = item.site || '';
-        const dose = item.dose !== undefined ? item.dose : '';
-        const vol = (item.dose && cfg.concentration) ? (item.dose / cfg.concentration).toFixed(2) : '';
-        const compound = cfg.compound || 'Testosterone Cypionate';
-        const conc = cfg.concentration ? `${cfg.concentration}` : '';
-        const iso = !isNaN(d.getTime()) ? d.toISOString() : '';
-
-        return [
-          dateStr,
-          timeStr,
-          site,
-          dose,
-          vol,
-          compound,
-          conc,
-          iso
-        ].map(escapeCSV).join(',');
-      });
-
-      const csvContent = '\uFEFF' + [headers.map(escapeCSV).join(','), ...rows].join('\r\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    function exportData() {
+      const payload = {
+        config: getConfig(),
+        sites: getSites(),
+        doses: getHistory()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const dateStamp = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `androlog_trt_history_${dateStamp}.csv`;
-      document.body.appendChild(a);
+      a.download = `androlog-backup-${new Date().toISOString().slice(0,10)}.json`;
       a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showToast(`Exported ${history.length} dose record${history.length === 1 ? '' : 's'} to CSV`);
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.config) saveConfig(data.config);
+          if (data.sites) localStorage.setItem('androlog_sites', JSON.stringify(data.sites));
+          if (data.doses) saveHistory(data.doses);
+          updateUI();
+          alert('Backup restored!');
+        } catch (err) {
+          alert('Invalid backup file.');
+        }
+      };
+      reader.readAsText(file);
     }
 
     function clearSampleData() {
       if (confirm('Are you sure you want to clear all logged doses? This cannot be undone.')) {
         saveHistory([]);
         updateUI();
-        showToast('All dose records cleared. Ready for your personal log!');
       }
     }
 
     function switchTab(tabName) {
-      const tabs = ['dashboard', 'sites', 'labs', 'settings'];
+      const tabs = ['dashboard', 'calendar', 'sites', 'labs', 'settings'];
       tabs.forEach(t => {
-        const view = document.getElementById('view-' + t);
-        if (view) view.classList.add('hidden');
+        document.getElementById('view-' + t).classList.add('hidden');
         const tabBtn = document.getElementById('tab-' + t);
         if (tabBtn) {
           tabBtn.classList.remove('text-brand-cyan');
           tabBtn.classList.add('text-brand-muted');
         }
       });
-      const activeView = document.getElementById('view-' + tabName);
-      if (activeView) activeView.classList.remove('hidden');
+
+      document.getElementById('view-' + tabName).classList.remove('hidden');
       const activeBtn = document.getElementById('tab-' + tabName);
       if (activeBtn) {
         activeBtn.classList.remove('text-brand-muted');
@@ -845,7 +850,12 @@
       window.scrollTo(0, 0);
     }
 
-    // Initialize
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
     resetToNow();
     updateUI();
   </script>
