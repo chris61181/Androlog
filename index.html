@@ -42,6 +42,50 @@
       font-family: 'Space Grotesk', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
+    /* Google Sign-in Official Material Design Button */
+    .gsi-material-button {
+      -webkit-user-select: none;
+      user-select: none;
+      background-color: #ffffff;
+      border: 1px solid #747775;
+      border-radius: 12px;
+      color: #1f1f1f;
+      cursor: pointer;
+      font-size: 13px;
+      height: 42px;
+      outline: none;
+      padding: 0 16px;
+      position: relative;
+      text-align: center;
+      transition: background-color .2s, box-shadow .2s;
+      vertical-align: middle;
+      white-space: nowrap;
+      width: 100%;
+      display: inline-block;
+    }
+    .gsi-material-button .gsi-material-button-content-wrapper {
+      align-items: center;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      height: 100%;
+      justify-content: center;
+      width: 100%;
+    }
+    .gsi-material-button .gsi-material-button-icon {
+      height: 20px;
+      margin-right: 12px;
+      min-width: 20px;
+      width: 20px;
+    }
+    .gsi-material-button .gsi-material-button-contents {
+      font-weight: 600;
+      color: #1f1f1f;
+    }
+    .gsi-material-button:hover {
+      background-color: #f8fafc;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between max-w-md mx-auto relative pb-24 select-none">
@@ -56,8 +100,13 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
+      <button onclick="switchTab('settings'); setTimeout(() => document.getElementById('drive-section')?.scrollIntoView({behavior:'smooth'}), 100)" id="header-drive-btn" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border transition" title="Google Drive Cloud Sync">
+        <span class="w-2 h-2 rounded-full bg-slate-500" id="header-drive-dot"></span>
+        <span class="material-symbols-outlined text-xs text-brand-cyan">cloud</span>
+        <span id="header-drive-label">Drive</span>
+      </button>
       <button onclick="switchTab('settings')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border">
-        <span class="material-symbols-outlined text-xs text-brand-cyan">tune</span> Setup
+        <span class="material-symbols-outlined text-xs text-brand-cyan">tune</span> Edit
       </button>
     </div>
   </header>
@@ -71,13 +120,9 @@
       <div class="bg-brand-card border border-brand-border rounded-2xl p-4 relative overflow-hidden shadow-lg">
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-xs font-semibold text-brand-cyan uppercase tracking-wider">Current Protocol • No AI</span>
-            <h2 class="text-xl font-bold text-white mt-0.5" id="dash-weekly-dose">120 mg / week</h2>
+            <span class="text-xs font-semibold text-brand-cyan uppercase tracking-wider">Current Protocol</span>
+            <h2 class="text-xl font-bold text-white mt-0.5" id="dash-weekly-dose">140 mg / week</h2>
             <p class="text-xs text-brand-muted mt-1" id="dash-compound">Testosterone Cypionate (200 mg/mL)</p>
-            <div class="flex items-center gap-1.5 mt-2">
-              <span class="text-[10px] font-bold bg-brand-surface text-brand-cyan px-2 py-0.5 rounded border border-brand-border" id="dash-schedule-badge">60mg Thu & Sun</span>
-              <span class="text-[10px] font-bold bg-brand-surface text-emerald-400 px-2 py-0.5 rounded border border-brand-border" id="dash-needle-badge">27g 1/2" Delt</span>
-            </div>
           </div>
           <div class="text-right">
             <span class="text-xs text-brand-muted block">Next Depot</span>
@@ -87,8 +132,8 @@
         <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-brand-border/60">
           <div class="bg-brand-surface/70 p-3 rounded-xl border border-brand-border/40">
             <span class="text-[11px] text-brand-muted block">Vial Volume</span>
-            <span class="text-lg font-bold text-white" id="dash-vial-vol">10.00 mL</span>
-            <span class="text-[10px] text-brand-muted block" id="dash-vial-doses">~33 doses left</span>
+            <span class="text-lg font-bold text-white" id="dash-vial-vol">10.0 mL</span>
+            <span class="text-[10px] text-brand-muted block" id="dash-vial-doses">~20 doses left</span>
           </div>
           <div class="bg-brand-surface/70 p-3 rounded-xl border border-brand-border/40">
             <span class="text-[11px] text-brand-muted block">Last Pin</span>
@@ -109,18 +154,13 @@
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div>
             <label class="text-brand-muted block mb-1">Dose (mg)</label>
-            <input type="number" id="input-dose" value="60" oninput="updateSyringeHelper()" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+            <input type="number" id="input-dose" value="70" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
           </div>
           <div>
             <label class="text-brand-muted block mb-1">Depot Site</label>
             <select id="input-site" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
             </select>
           </div>
-        </div>
-        <!-- Dynamic Syringe Draw Helper -->
-        <div class="bg-brand-surface/80 border border-brand-border/60 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
-          <span class="text-brand-muted">27g 1/2" Draw Volume:</span>
-          <span class="font-bold text-brand-cyan" id="syringe-draw-helper">0.30 mL (30 Units on U-100)</span>
         </div>
         <div>
           <label class="text-brand-muted block text-xs mb-1">Date & Time (Change to backdate missed pins)</label>
@@ -131,38 +171,45 @@
         </button>
       </div>
 
-      <!-- Injection History -->
+      <!-- Injection History with CSV Export -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider">Recorded History</h3>
-          <span class="text-[11px] text-brand-muted" id="history-count">0 logged</span>
+          <div class="flex items-center gap-2">
+            <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider">Recorded History</h3>
+            <span class="text-[11px] text-brand-muted" id="history-count">0 logged</span>
+          </div>
+          <button onclick="exportCSV()" class="flex items-center gap-1 text-[11px] font-bold text-brand-cyan bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/30 px-2.5 py-1 rounded-lg transition" title="Export History as CSV">
+            <span class="material-symbols-outlined text-xs">download</span> Export CSV
+          </button>
         </div>
-        <div id="dose-history-list" class="space-y-2 text-sm"></div>
+        <div id="dose-history-list" class="space-y-2 text-sm">
+          <p class="text-xs text-brand-muted text-center py-4">No doses logged yet. Use the form above to add your first pin.</p>
+        </div>
       </div>
     </div>
 
     <!-- Tab 2: Interactive Calendar -->
     <div id="view-calendar" class="space-y-4 hidden">
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-4">
           <button onclick="changeMonth(-1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
             <span class="material-symbols-outlined text-sm">chevron_left</span>
           </button>
-          <div class="text-center">
-            <h3 class="font-bold text-white text-base" id="cal-month-title">October 2026</h3>
-            <span class="text-[10px] text-brand-muted">Thu & Sun Target Pin Days Highlighted</span>
-          </div>
+          <h3 class="font-bold text-white text-base" id="cal-month-title">October 2026</h3>
           <button onclick="changeMonth(1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
             <span class="material-symbols-outlined text-sm">chevron_right</span>
           </button>
         </div>
 
         <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-brand-muted mb-2">
-          <div class="text-brand-cyan">SUN</div><div>MON</div><div>TUE</div><div>WED</div><div class="text-brand-cyan">THU</div><div>FRI</div><div>SAT</div>
+          <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
         </div>
-        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 text-center text-xs"></div>
+        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 text-center text-xs">
+          <!-- Populated by JS -->
+        </div>
       </div>
 
+      <!-- Selected Day Details & Missed Pin Trigger -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
         <div class="flex items-center justify-between">
           <h4 class="text-xs font-bold text-brand-cyan uppercase tracking-wider" id="cal-selected-label">Selected Date</h4>
@@ -170,7 +217,9 @@
             <span class="material-symbols-outlined text-sm">add</span> Log Pin on This Day
           </button>
         </div>
-        <div id="cal-day-logs" class="space-y-2 text-xs"></div>
+        <div id="cal-day-logs" class="space-y-2 text-xs">
+          <p class="text-brand-muted py-2">Tap any date above to view or add injections.</p>
+        </div>
       </div>
     </div>
 
@@ -179,8 +228,8 @@
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
         <div class="flex justify-between items-start">
           <div>
-            <h3 class="font-bold text-white text-base">Deltoid Rotation Schedule</h3>
-            <p class="text-xs text-brand-muted mt-1">Alternating Left & Right Deltoids (27g 1/2" shallow IM).</p>
+            <h3 class="font-bold text-white text-base">Site Rotation Schedule</h3>
+            <p class="text-xs text-brand-muted mt-1">Sorted automatically: optimal & longest-rested sites at the top.</p>
           </div>
           <button onclick="switchTab('settings')" class="text-xs text-brand-cyan hover:underline flex items-center gap-1">
             <span class="material-symbols-outlined text-sm">edit</span> Sites
@@ -190,160 +239,168 @@
       </div>
     </div>
 
-    <!-- Tab 4: Longitudinal Biomarker History (AccessLabs & Labcorp) -->
+    <!-- Tab 4: AccessLabs Biomarkers -->
     <div id="view-labs" class="space-y-4 hidden">
-      
-      <!-- Total T & E2 Trajectory Chart -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg">
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <h3 class="font-bold text-white text-sm">2026 Trough Trajectory (No AI)</h3>
-            <p class="text-[11px] text-brand-muted">Total T Goal: ~1000 ng/dL (Cyan) • E2 (Emerald)</p>
-          </div>
-          <span class="text-[10px] font-bold bg-brand-surface px-2 py-1 rounded border border-brand-border text-brand-cyan" id="lab-count-badge">5 Panels</span>
-        </div>
-        <div id="lab-chart-container" class="w-full h-36 pt-2"></div>
-      </div>
-
-      <!-- Lab Panel Selector Pills -->
-      <div id="lab-date-pills" class="flex gap-2 overflow-x-auto pb-1 no-scrollbar"></div>
-
-      <!-- Active Selected Lab Panel Details -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-cyan" id="disp-lab-provider">AccessLabs • GameDay</span>
-            <h3 class="font-bold text-white text-base mt-0.5" id="disp-lab-date">09/03/2026</h3>
+            <h3 class="font-bold text-white text-base">AccessLabs Biomarkers</h3>
+            <p class="text-xs text-brand-muted">Provider: GameDay Men's Health</p>
           </div>
-          <button onclick="deleteSelectedLabPanel()" class="text-xs text-brand-muted hover:text-red-400 flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">delete</span>
+          <button onclick="switchTab('settings')" class="text-xs text-brand-cyan hover:underline flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">edit</span> Edit Values
           </button>
         </div>
-
         <div class="grid grid-cols-2 gap-3 mt-4">
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">Total T (Trough)</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-tot-t">959 <span class="text-xs font-normal text-brand-muted">ng/dL</span></span>
-            <span class="text-[11px] font-medium" id="disp-lab-tot-t-status">Goal: ~1000 at Trough</span>
-          </div>
-          <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">Estradiol (E2 • No AI)</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-e2">26.0 <span class="text-xs font-normal text-brand-muted">pg/mL</span></span>
-            <span class="text-[11px] font-medium" id="disp-lab-e2-status">Ref: 11.3–43.2</span>
+            <span class="text-xs text-brand-muted block">Total Testosterone</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-tot-t">842 <span class="text-xs font-normal text-brand-muted">ng/dL</span></span>
+            <span class="text-[11px] text-emerald-400 font-medium">Target: 650–950</span>
           </div>
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
             <span class="text-xs text-brand-muted block">Free Testosterone</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-free-t">—</span>
-            <span class="text-[11px] text-brand-muted font-medium" id="disp-lab-free-t-unit">Direct Assay</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-free-t">23.8 <span class="text-xs font-normal text-brand-muted">pg/mL</span></span>
+            <span class="text-[11px] text-emerald-400 font-medium">Target: 15–25</span>
           </div>
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">PSA (Prostate)</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-psa">1.120 <span class="text-xs font-normal text-brand-muted">ng/mL</span></span>
-            <span class="text-[11px] text-emerald-400 font-medium" id="disp-lab-psa-status">Safe (0.0–4.0)</span>
+            <span class="text-xs text-brand-muted block">Sensitive Estradiol</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-e2">28.4 <span class="text-xs font-normal text-brand-muted">pg/mL</span></span>
+            <span class="text-[11px] text-emerald-400 font-medium">Target: 20–35</span>
           </div>
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">T : E2 Ratio</span>
-            <span class="text-xl font-bold text-brand-cyan mt-1 block" id="disp-lab-ratio">36.9 : 1</span>
-            <span class="text-[11px] text-brand-muted font-medium">Natural Aromatization</span>
+            <span class="text-xs text-brand-muted block">Hematocrit (HCT)</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-hct">47.2 <span class="text-xs font-normal text-brand-muted">%</span></span>
+            <span class="text-[11px] text-emerald-400 font-medium" id="disp-lab-hct-status">Safe (&lt; 52.0%)</span>
           </div>
-          <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">HCT / SHBG</span>
-            <span class="text-sm font-bold text-white mt-1.5 block" id="disp-lab-extra">HCT: — | SHBG: —</span>
-            <span class="text-[11px] text-brand-muted font-medium" id="disp-lab-notes">Panel Notes</span>
-          </div>
+        </div>
+        <div class="mt-4 p-3 rounded-xl bg-brand-surface border border-brand-border/60 text-xs text-brand-muted flex items-center justify-between">
+          <span>Last Draw Date:</span>
+          <span class="font-bold text-white" id="disp-lab-date">Recent</span>
         </div>
       </div>
-
-      <!-- Log New Lab Panel Card -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-3">
-        <h3 class="font-bold text-white text-sm flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand-cyan text-lg">add_chart</span> Log New Trough Blood Draw
-        </h3>
-        <div class="grid grid-cols-2 gap-2.5 text-xs">
-          <div>
-            <label class="text-brand-muted block mb-1">Draw Date</label>
-            <input type="date" id="new-lab-date" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Lab / Provider</label>
-            <input type="text" id="new-lab-provider" value="AccessLabs • GameDay" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Total T (ng/dL)</label>
-            <input type="number" step="0.1" id="new-lab-tott" placeholder="e.g. 959" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Estradiol E2 (pg/mL)</label>
-            <input type="number" step="0.1" id="new-lab-e2" placeholder="e.g. 26.0" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Free T (Optional)</label>
-            <input type="number" step="0.1" id="new-lab-freet" placeholder="e.g. 10.0" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">PSA (ng/mL)</label>
-            <input type="number" step="0.001" id="new-lab-psa" placeholder="e.g. 1.120" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Hematocrit % (Opt)</label>
-            <input type="number" step="0.1" id="new-lab-hct" placeholder="e.g. 47.2" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">SHBG nmol/L (Opt)</label>
-            <input type="number" step="0.1" id="new-lab-shbg" placeholder="e.g. 47" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
-          </div>
-        </div>
-        <div>
-          <label class="text-brand-muted block text-xs mb-1">Protocol / Draw Notes</label>
-          <input type="text" id="new-lab-notes" placeholder="e.g. Trough (No AI) • 120mg/wk (60mg Thu/Sun)" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs">
-        </div>
-        <button onclick="addLabPanel()" class="w-full bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
-          <span class="material-symbols-outlined text-base">save</span> Save Lab Panel to History
-        </button>
-      </div>
-
     </div>
 
-    <!-- Tab 5: Settings, Site Manager & Backup -->
+    <!-- Tab 5: Settings, Site Manager & Google Drive -->
     <div id="view-settings" class="space-y-4 hidden">
       
       <!-- Manage Custom Injection Sites -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <h3 class="font-bold text-white text-base flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand-cyan">accessibility_new</span> Active Rotation Sites
+          <span class="material-symbols-outlined text-brand-cyan">accessibility_new</span> Custom Injection Sites
         </h3>
+        <p class="text-xs text-brand-muted">Remove unused sites or add your preferred injection locations.</p>
         <div id="settings-site-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
         <div class="flex gap-2 text-xs pt-1">
-          <input type="text" id="new-site-name" placeholder="Add site (e.g. Right Ventroglute)" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-brand-cyan">
+          <input type="text" id="new-site-name" placeholder="Add site (e.g. Left Deltoid)" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-brand-cyan">
           <button onclick="addSite()" class="bg-brand-cyan text-brand-dark px-4 rounded-xl font-bold hover:bg-sky-400 transition">Add</button>
+        </div>
+      </div>
+
+      <!-- Google Drive Cloud Sync & Backup -->
+      <div id="drive-section" class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
+              <span class="material-symbols-outlined text-lg">cloud_sync</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-base leading-tight">Google Drive</h3>
+              <p class="text-[11px] text-brand-muted" id="drive-connection-status">Cloud sync & remote backup</p>
+            </div>
+          </div>
+          <span id="drive-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surface text-brand-muted border border-brand-border">Disconnected</span>
+        </div>
+
+        <!-- Not Signed In View -->
+        <div id="drive-unauth-view" class="space-y-3 pt-1">
+          <p class="text-xs text-brand-muted leading-relaxed">
+            Connect your Google account to backup your TRT protocols, dose history, and custom sites directly to a secure <span class="text-white font-semibold">AndroLog TRT</span> folder in Google Drive.
+          </p>
+          <div class="pt-1">
+            <button class="gsi-material-button" onclick="handleGoogleSignIn()">
+              <div class="gsi-material-button-state"></div>
+              <div class="gsi-material-button-content-wrapper">
+                <div class="gsi-material-button-icon">
+                  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    <path fill="none" d="M0 0h48v48H0z"></path>
+                  </svg>
+                </div>
+                <span class="gsi-material-button-contents">Sign in with Google</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Signed In View -->
+        <div id="drive-auth-view" class="space-y-4 pt-1 hidden">
+          <!-- User Profile Row -->
+          <div class="flex items-center justify-between bg-brand-surface p-3 rounded-xl border border-brand-border">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+              <img id="drive-user-photo" src="" alt="Google User" class="w-8 h-8 rounded-full border border-brand-cyan/40 shrink-0 bg-brand-card">
+              <div class="truncate">
+                <span id="drive-user-name" class="font-bold text-white block text-xs truncate">User</span>
+                <span id="drive-user-email" class="text-[11px] text-brand-muted block truncate">email@gmail.com</span>
+              </div>
+            </div>
+            <button onclick="handleGoogleSignOut()" class="text-xs text-brand-muted hover:text-red-400 font-semibold px-2.5 py-1.5 rounded-lg bg-brand-card border border-brand-border shrink-0 ml-2 transition">
+              Sign Out
+            </button>
+          </div>
+
+          <!-- Drive Actions -->
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="backupToGoogleDrive()" id="btn-backup-drive" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-sky-500/10">
+              <span class="material-symbols-outlined text-base">cloud_upload</span> Backup to Drive
+            </button>
+            <button onclick="exportCSVToGoogleDrive()" id="btn-export-csv-drive" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
+              <span class="material-symbols-outlined text-base text-brand-cyan">table_view</span> Save CSV to Drive
+            </button>
+          </div>
+
+          <!-- Auto-Sync Toggle -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
+            <div>
+              <span class="text-white font-semibold block">Auto-Sync on Pin</span>
+              <span class="text-brand-muted text-[11px]">Save backup to Drive when logging each dose</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="drive-auto-sync" onchange="toggleAutoSync(event)" class="sr-only peer">
+              <div class="w-9 h-5 bg-brand-card peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-cyan"></div>
+            </label>
+          </div>
+
+          <!-- Cloud Backups Header & List -->
+          <div class="space-y-2 pt-2 border-t border-brand-border/50">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Drive Files (AndroLog TRT)</span>
+              <button onclick="loadDriveBackupsList()" class="text-[11px] text-brand-cyan hover:underline flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">refresh</span> Refresh
+              </button>
+            </div>
+            <div id="drive-files-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+              <p class="text-xs text-brand-muted py-2">Loading files from Drive...</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Protocol & Compound Settings -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <h3 class="font-bold text-white text-base flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand-cyan">medical_services</span> Protocol & Syringe Settings
+          <span class="material-symbols-outlined text-brand-cyan">medical_services</span> Protocol & Vial Settings
         </h3>
         <div class="space-y-3 text-xs">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-brand-muted block mb-1">Weekly Dose (mg)</label>
-              <input type="number" id="set-weekly-dose" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-            </div>
-            <div>
-              <label class="text-brand-muted block mb-1">Pin Schedule</label>
-              <input type="text" id="set-schedule" placeholder="60mg Thu & Sun" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-            </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Target Dose per Week (mg)</label>
+            <input type="number" id="set-weekly-dose" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-brand-muted block mb-1">Compound Name</label>
-              <input type="text" id="set-compound" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-            </div>
-            <div>
-              <label class="text-brand-muted block mb-1">Needle / Syringe</label>
-              <input type="text" id="set-needle" placeholder='27g 1/2" Delt' class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-            </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Compound Name</label>
+            <input type="text" id="set-compound" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -356,15 +413,44 @@
             </div>
           </div>
         </div>
-        <button onclick="saveSettings()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
-          <span class="material-symbols-outlined text-lg">save</span> Save Protocol Settings
-        </button>
       </div>
 
-      <!-- Save & Backup Actions -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-2">
-        <h3 class="font-bold text-white text-sm mb-2">Backup & Presets</h3>
-        <div class="grid grid-cols-2 gap-2">
+      <!-- AccessLabs Values Editor -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <span class="material-symbols-outlined text-brand-cyan">biotechnology</span> AccessLabs Values
+        </h3>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="text-brand-muted block mb-1">Total T (ng/dL)</label>
+            <input type="number" id="set-lab-tot-t" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Free T (pg/mL)</label>
+            <input type="number" step="0.1" id="set-lab-free-t" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Sensitive E2 (pg/mL)</label>
+            <input type="number" step="0.1" id="set-lab-e2" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Hematocrit (%)</label>
+            <input type="number" step="0.1" id="set-lab-hct" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+          </div>
+        </div>
+        <div>
+          <label class="text-brand-muted block text-xs mb-1">Lab Date Description</label>
+          <input type="text" id="set-lab-date" placeholder="e.g. October 2026" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan">
+        </div>
+      </div>
+
+      <!-- Save & Local Actions -->
+      <div class="space-y-2 pt-2">
+        <button onclick="saveSettings()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+          <span class="material-symbols-outlined text-lg">save</span> Save All Settings
+        </button>
+        
+        <div class="grid grid-cols-2 gap-2 pt-2">
           <button onclick="exportData()" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
             <span class="material-symbols-outlined text-sm text-brand-cyan">download</span> Export JSON
           </button>
@@ -374,12 +460,8 @@
           </label>
         </div>
 
-        <button onclick="syncDefaultSetup()" class="w-full bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-border font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mt-2">
-          <span class="material-symbols-outlined text-base">sync</span> Sync Default 120mg Delt Setup & 2026 Labs
-        </button>
-
         <button onclick="clearSampleData()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mt-2">
-          <span class="material-symbols-outlined text-base">delete_sweep</span> Clear All Logged Doses
+          <span class="material-symbols-outlined text-base">delete_sweep</span> Clear All Doses & Start Fresh
         </button>
       </div>
     </div>
@@ -410,91 +492,189 @@
     </button>
   </nav>
 
-  <script>
-    // Defaulting directly to your Left & Right Deltoid rotation
+  <!-- Custom Confirmation Dialog (Mandatory for Destructive Workspace Operations) -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-brand-card border border-brand-border rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center gap-3">
+        <div id="confirm-modal-icon-bg" class="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0">
+          <span class="material-symbols-outlined text-xl" id="confirm-modal-icon">warning</span>
+        </div>
+        <div class="min-w-0">
+          <h4 class="font-bold text-white text-sm" id="confirm-modal-title">Confirm Action</h4>
+          <p class="text-[11px] text-brand-muted mt-0.5 truncate" id="confirm-modal-subtitle">Action description</p>
+        </div>
+      </div>
+      <p class="text-xs text-brand-muted leading-relaxed" id="confirm-modal-message"></p>
+      <div class="flex items-center gap-2 pt-2">
+        <button id="confirm-modal-cancel" class="flex-1 bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-white font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
+          Cancel
+        </button>
+        <button id="confirm-modal-action" class="flex-1 bg-red-500 hover:bg-red-400 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Dose Modal -->
+  <div id="edit-dose-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-brand-card border border-brand-border rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h4 class="font-bold text-white text-base flex items-center gap-2">
+          <span class="material-symbols-outlined text-brand-cyan">edit_note</span> Edit Pin Entry
+        </h4>
+        <button onclick="closeEditDoseModal()" class="text-brand-muted hover:text-white">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-brand-muted block mb-1">Dose (mg)</label>
+          <input type="number" id="edit-dose-mg" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+        </div>
+        <div>
+          <label class="text-brand-muted block mb-1">Depot Site</label>
+          <select id="edit-dose-site" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 pt-1">
+        <button onclick="closeEditDoseModal()" class="flex-1 bg-brand-surface hover:bg-brand-card text-brand-muted font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
+          Cancel
+        </button>
+        <button onclick="submitEditDose()" class="flex-1 bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-20 left-4 right-4 max-w-md mx-auto z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-brand-surface/95 border border-brand-cyan/40 backdrop-blur-md px-4 py-3 rounded-xl shadow-xl flex items-center gap-3">
+      <span class="material-symbols-outlined text-base text-brand-cyan" id="toast-icon">info</span>
+      <span class="text-xs font-semibold text-white truncate" id="toast-msg">Notification</span>
+    </div>
+  </div>
+
+  <!-- Main Application and Google Drive Integration Module -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithPopup, 
+      GoogleAuthProvider, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+    // ----------------------------------------------------
+    // Configuration & State
+    // ----------------------------------------------------
     const DEFAULT_SITES = [
-      'Right Deltoid',
-      'Left Deltoid'
+      'Right Ventroglute', 'Left Ventroglute',
+      'Right Deltoid', 'Left Deltoid',
+      'Right Quad', 'Left Quad',
+      'Right Glute (Dorsal)', 'Left Glute (Dorsal)',
+      'SubQ Abdomen'
     ];
 
     const DEFAULT_CONFIG = {
-      weeklyDose: 120,
-      schedule: '60mg Thu & Sun',
-      needle: '27g 1/2" Delt',
+      weeklyDose: 140,
       compound: 'Testosterone Cypionate',
       concentration: 200,
-      vialVolume: 10.0
+      vialVolume: 10.0,
+      labTotalT: 842,
+      labFreeT: 23.8,
+      labE2: 28.4,
+      labHct: 47.2,
+      labDate: 'Recent Lab Panel'
     };
-
-    // Pre-loaded from your actual 2026 AccessLabs & Labcorp PDFs (All Trough, No AI)
-    const DEFAULT_LABS = [
-      {
-        date: '2026-09-03',
-        provider: "AccessLabs • GameDay Men's Health",
-        totalT: 959,
-        freeT: null,
-        freeTUnit: 'ng/dL',
-        e2: 26.0,
-        psa: 1.120,
-        hct: null,
-        shbg: null,
-        notes: 'Thu AM Trough (No AI) • 120mg/wk (60mg Thu/Sun • 27g 1/2" Delts)'
-      },
-      {
-        date: '2026-06-23',
-        provider: "AccessLabs • GameDay Men's Health",
-        totalT: 295,
-        freeT: null,
-        freeTUnit: 'ng/dL',
-        e2: 8.0,
-        psa: 0.916,
-        hct: null,
-        shbg: null,
-        notes: 'Trough (No AI) • Titrating dose upward toward ~1000 goal'
-      },
-      {
-        date: '2026-05-13',
-        provider: "AccessLabs • GameDay Men's Health",
-        totalT: 575,
-        freeT: 10.0,
-        freeTUnit: 'ng/dL (Ref 5.7–17.9)',
-        e2: 7.0,
-        psa: 0.949,
-        hct: null,
-        shbg: 47,
-        notes: 'Trough (No AI) • LH 6.9, FSH 6.2, Prolactin 17.6, TSH 1.78, eGFR 125'
-      },
-      {
-        date: '2026-04-11',
-        provider: 'Labcorp • CRS Urology (A. Coccia)',
-        totalT: 341.2,
-        freeT: 7.8,
-        freeTUnit: 'pg/mL (Ref 6.8–21.5)',
-        e2: 21.9,
-        psa: null,
-        hct: null,
-        shbg: null,
-        notes: 'Baseline Trough (LC/MS-MS) • LH 7.2, FSH 8.6, Prolactin 7.3'
-      },
-      {
-        date: '2026-03-19',
-        provider: 'Labcorp • Winslow Primary Care',
-        totalT: 344,
-        freeT: 6.2,
-        freeTUnit: 'pg/mL (Low < 6.8)',
-        e2: null,
-        psa: 0.900,
-        hct: 43.9,
-        shbg: null,
-        notes: 'Baseline Trough • Hgb 15.0, A1c 5.3%, B12 622, TSH 2.68, eGFR 113'
-      }
-    ];
 
     let calYear = new Date().getFullYear();
     let calMonth = new Date().getMonth();
     let selectedCalDateStr = new Date().toISOString().slice(0, 10);
-    let selectedLabIdx = 0;
+    let editingDoseIdx = -1;
 
+    // In-memory token management (per Workspace skill security requirements: NEVER store in localStorage)
+    let cachedAccessToken = null;
+    let currentUser = null;
+    let auth = null;
+    let isSigningIn = false;
+
+    // Toast Notification Helper
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      const text = document.getElementById('toast-msg');
+      if (!toast || !icon || !text) return;
+
+      text.innerText = msg;
+      if (type === 'success') {
+        icon.innerText = 'check_circle';
+        icon.className = 'material-symbols-outlined text-base text-emerald-400';
+      } else if (type === 'error') {
+        icon.innerText = 'error';
+        icon.className = 'material-symbols-outlined text-base text-red-400';
+      } else {
+        icon.innerText = 'info';
+        icon.className = 'material-symbols-outlined text-base text-brand-cyan';
+      }
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(window.__toastTimeout);
+      window.__toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3500);
+    }
+    window.showToast = showToast;
+
+    // Custom Confirmation Dialog (Mandatory for destructive Google Drive / Data actions)
+    function showConfirmDialog({ title, subtitle, message, confirmText, isDanger, onConfirm }) {
+      const modal = document.getElementById('confirm-modal');
+      document.getElementById('confirm-modal-title').innerText = title || 'Confirm Action';
+      document.getElementById('confirm-modal-subtitle').innerText = subtitle || '';
+      document.getElementById('confirm-modal-message').innerText = message || 'Are you sure you want to proceed?';
+
+      const iconBg = document.getElementById('confirm-modal-icon-bg');
+      const icon = document.getElementById('confirm-modal-icon');
+      const actionBtn = document.getElementById('confirm-modal-action');
+
+      if (isDanger) {
+        iconBg.className = 'w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0';
+        icon.innerText = 'warning';
+        actionBtn.className = 'flex-1 bg-red-500 hover:bg-red-400 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition shadow-lg shadow-red-500/20';
+      } else {
+        iconBg.className = 'w-10 h-10 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shrink-0';
+        icon.innerText = 'help';
+        actionBtn.className = 'flex-1 bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition shadow-lg shadow-sky-500/20';
+      }
+
+      actionBtn.innerText = confirmText || 'Confirm';
+      const cancelBtn = document.getElementById('confirm-modal-cancel');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        actionBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      cancelBtn.onclick = cleanup;
+      actionBtn.onclick = () => {
+        cleanup();
+        if (onConfirm) onConfirm();
+      };
+
+      modal.classList.remove('hidden');
+    }
+    window.showConfirmDialog = showConfirmDialog;
+
+    // ----------------------------------------------------
+    // LocalStorage CRUD Functions (Backward compatible)
+    // ----------------------------------------------------
     function getSites() {
       const stored = localStorage.getItem('androlog_sites');
       return stored ? JSON.parse(stored) : DEFAULT_SITES;
@@ -513,55 +693,40 @@
       if (!sites.includes(val)) {
         sites.push(val);
         saveSites(sites);
+        showToast(`Added injection site "${val}"`, 'success');
+      } else {
+        showToast('Site is already in the list.', 'info');
       }
       input.value = '';
     }
 
+    function removeSite(siteName) {
+      showConfirmDialog({
+        title: 'Delete Injection Site',
+        subtitle: siteName,
+        message: `Remove "${siteName}" from your rotation list? Historical doses logged to this site will remain in your history.`,
+        confirmText: 'Remove Site',
+        isDanger: true,
+        onConfirm: () => {
+          const sites = getSites().filter(s => s !== siteName);
+          saveSites(sites);
+          showToast(`Removed "${siteName}"`, 'success');
+        }
+      });
+    }
+
     function removeSiteIndex(idx) {
       const sites = getSites();
-      if (confirm(`Remove "${sites[idx]}" from your rotation list?`)) {
-        sites.splice(idx, 1);
-        saveSites(sites);
-      }
+      if (sites[idx]) removeSite(sites[idx]);
     }
 
     function getConfig() {
       const stored = localStorage.getItem('androlog_config');
-      return stored ? { ...DEFAULT_CONFIG, ...JSON.parse(stored) } : DEFAULT_CONFIG;
+      return stored ? JSON.parse(stored) : DEFAULT_CONFIG;
     }
 
     function saveConfig(cfg) {
       localStorage.setItem('androlog_config', JSON.stringify(cfg));
-    }
-
-    function getLabs() {
-      const stored = localStorage.getItem('androlog_labs_v3');
-      if (!stored) {
-        localStorage.setItem('androlog_labs_v3', JSON.stringify(DEFAULT_LABS));
-        return DEFAULT_LABS;
-      }
-      return JSON.parse(stored);
-    }
-
-    function saveLabs(labs) {
-      labs.sort((a, b) => b.date.localeCompare(a.date));
-      localStorage.setItem('androlog_labs_v3', JSON.stringify(labs));
-    }
-
-    function syncDefaultSetup() {
-      if (confirm('Sync protocol to 120mg/wk (60mg Thu & Sun • 27g 1/2" Delts) and reload your 5 baseline 2026 trough panels? (Logged doses will not be deleted).')) {
-        const currentCfg = getConfig();
-        saveConfig({
-          ...DEFAULT_CONFIG,
-          vialVolume: currentCfg.vialVolume || 10.0
-        });
-        localStorage.setItem('androlog_sites', JSON.stringify(DEFAULT_SITES));
-        saveLabs([...DEFAULT_LABS]);
-        document.getElementById('input-dose').value = 60;
-        selectedLabIdx = 0;
-        updateUI();
-        switchTab('dashboard');
-      }
     }
 
     function getHistory() {
@@ -578,63 +743,61 @@
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       document.getElementById('input-date').value = now.toISOString().slice(0, 16);
-      document.getElementById('new-lab-date').value = now.toISOString().slice(0, 10);
-    }
-
-    function updateSyringeHelper() {
-      const cfg = getConfig();
-      const doseMg = parseFloat(document.getElementById('input-dose').value) || 0;
-      const ml = doseMg / (cfg.concentration || 200);
-      const units = Math.round(ml * 100);
-      document.getElementById('syringe-draw-helper').innerText = `${ml.toFixed(2)} mL (${units} Units on U-100)`;
     }
 
     function formatDateText(dateObj) {
-      return dateObj.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' ' +
+      return dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
              dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
+    // ----------------------------------------------------
+    // UI Rendering
+    // ----------------------------------------------------
     function updateUI() {
       const cfg = getConfig();
       const history = getHistory();
       const sites = getSites();
 
-      // Populate Site Dropdown
+      // Populate Site Dropdowns
       const siteSelect = document.getElementById('input-site');
       const prevSite = siteSelect.value;
       siteSelect.innerHTML = '';
       sites.forEach(s => {
         siteSelect.innerHTML += `<option value="${s}">${s}</option>`;
       });
-      if (sites.includes(prevSite)) siteSelect.value = prevSite;
+      if (sites.includes(prevSite)) {
+        siteSelect.value = prevSite;
+      } else if (sites.length > 0) {
+        siteSelect.value = sites[0];
+      }
 
-      // Populate Custom Site Manager List
+      // Populate Custom Site Manager List in Settings
       const siteManageEl = document.getElementById('settings-site-list');
       siteManageEl.innerHTML = '';
-      sites.forEach((s, idx) => {
-        const row = document.createElement('div');
-        row.className = 'flex justify-between items-center bg-brand-surface border border-brand-border px-3 py-1.5 rounded-xl text-xs';
-        row.innerHTML = `
-          <span class="text-white font-semibold">${s}</span>
-          <button onclick="removeSiteIndex(${idx})" class="text-red-400 hover:text-red-300 p-1">
-            <span class="material-symbols-outlined text-sm">close</span>
-          </button>`;
-        siteManageEl.appendChild(row);
-      });
+      if (sites.length === 0) {
+        siteManageEl.innerHTML = '<p class="text-xs text-brand-muted py-2">No sites defined. Add your first site below.</p>';
+      } else {
+        sites.forEach((s, idx) => {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center bg-brand-surface border border-brand-border px-3 py-1.5 rounded-xl text-xs';
+          row.innerHTML = `
+            <span class="text-white font-semibold">${s}</span>
+            <button onclick="removeSiteIndex(${idx})" class="text-red-400 hover:text-red-300 p-1" title="Delete site">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>`;
+          siteManageEl.appendChild(row);
+        });
+      }
 
-      // Update Dashboard Protocol
+      // Update Dashboard Protocol Banner
       document.getElementById('dash-weekly-dose').innerText = `${cfg.weeklyDose} mg / week`;
       document.getElementById('dash-compound').innerText = `${cfg.compound} (${cfg.concentration} mg/mL)`;
-      document.getElementById('dash-schedule-badge').innerText = cfg.schedule || '60mg Thu & Sun';
-      document.getElementById('dash-needle-badge').innerText = cfg.needle || '27g 1/2" Delt';
       document.getElementById('dash-vial-vol').innerText = `${parseFloat(cfg.vialVolume).toFixed(2)} mL`;
 
-      const avgPinMg = (cfg.weeklyDose / 2) || 60;
+      const avgPinMg = (cfg.weeklyDose / 2) || 50;
       const mlPerPin = avgPinMg / cfg.concentration;
       const remainingDoses = mlPerPin > 0 ? Math.floor(cfg.vialVolume / mlPerPin) : 0;
-      document.getElementById('dash-vial-doses').innerText = `~${remainingDoses} doses left (${(mlPerPin).toFixed(2)} mL/pin)`;
-
-      updateSyringeHelper();
+      document.getElementById('dash-vial-doses').innerText = `~${remainingDoses} doses left`;
 
       // Update Last Pin
       if (history.length > 0) {
@@ -664,10 +827,10 @@
             </div>
             <div class="flex items-center gap-1">
               <span class="font-bold text-brand-cyan text-xs bg-brand-cyan/10 px-2 py-0.5 rounded border border-brand-cyan/20">${item.dose} mg</span>
-              <button onclick="editDose(${idx})" class="text-brand-muted hover:text-brand-cyan p-1">
+              <button onclick="editDose(${idx})" class="text-brand-muted hover:text-brand-cyan p-1" title="Edit Pin">
                 <span class="material-symbols-outlined text-sm">edit</span>
               </button>
-              <button onclick="deleteDose(${idx})" class="text-brand-muted hover:text-red-400 p-1">
+              <button onclick="deleteDose(${idx})" class="text-brand-muted hover:text-red-400 p-1" title="Delete Pin">
                 <span class="material-symbols-outlined text-sm">delete</span>
               </button>
             </div>
@@ -676,203 +839,50 @@
         });
       }
 
+      // Update Labs Display
+      document.getElementById('disp-lab-tot-t').innerHTML = `${cfg.labTotalT} <span class="text-xs font-normal text-brand-muted">ng/dL</span>`;
+      document.getElementById('disp-lab-free-t').innerHTML = `${cfg.labFreeT} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
+      document.getElementById('disp-lab-e2').innerHTML = `${cfg.labE2} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
+      document.getElementById('disp-lab-hct').innerHTML = `${cfg.labHct} <span class="text-xs font-normal text-brand-muted">%</span>`;
+      const hctStatus = document.getElementById('disp-lab-hct-status');
+      if (parseFloat(cfg.labHct) >= 52.0) {
+        hctStatus.className = 'text-[11px] text-red-400 font-medium';
+        hctStatus.innerText = 'Elevated (≥ 52.0%)';
+      } else {
+        hctStatus.className = 'text-[11px] text-emerald-400 font-medium';
+        hctStatus.innerText = 'Safe (< 52.0%)';
+      }
+      document.getElementById('disp-lab-date').innerText = cfg.labDate || 'Recent';
+
       // Update Settings Inputs
       document.getElementById('set-weekly-dose').value = cfg.weeklyDose;
-      document.getElementById('set-schedule').value = cfg.schedule || '60mg Thu & Sun';
       document.getElementById('set-compound').value = cfg.compound;
-      document.getElementById('set-needle').value = cfg.needle || '27g 1/2" Delt';
       document.getElementById('set-concentration').value = cfg.concentration;
       document.getElementById('set-vial-vol').value = cfg.vialVolume;
+      document.getElementById('set-lab-tot-t').value = cfg.labTotalT;
+      document.getElementById('set-lab-free-t').value = cfg.labFreeT;
+      document.getElementById('set-lab-e2').value = cfg.labE2;
+      document.getElementById('set-lab-hct').value = cfg.labHct;
+      document.getElementById('set-lab-date').value = cfg.labDate;
 
       updateSiteRotation(history, sites);
       renderCalendar();
-      renderLabsView();
-    }
-
-    function renderLabsView() {
-      const labs = getLabs();
-      document.getElementById('lab-count-badge').innerText = `${labs.length} Trough Draws`;
-
-      const pillsEl = document.getElementById('lab-date-pills');
-      pillsEl.innerHTML = '';
-      if (selectedLabIdx >= labs.length) selectedLabIdx = 0;
-
-      labs.forEach((item, idx) => {
-        const active = idx === selectedLabIdx;
-        const btn = document.createElement('button');
-        btn.onclick = () => { selectedLabIdx = idx; renderLabsView(); };
-        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition ${
-          active
-            ? 'bg-brand-cyan text-brand-dark border-brand-cyan shadow-md shadow-sky-500/20'
-            : 'bg-brand-surface text-brand-muted border-brand-border hover:text-white'
-        }`;
-        btn.innerText = item.date;
-        pillsEl.appendChild(btn);
-      });
-
-      const current = labs[selectedLabIdx];
-      if (current) {
-        document.getElementById('disp-lab-provider').innerText = current.provider || 'AccessLabs';
-        document.getElementById('disp-lab-date').innerText = `${current.date} (Trough)`;
-
-        // Total T
-        document.getElementById('disp-lab-tot-t').innerHTML = current.totalT
-          ? `${current.totalT} <span class="text-xs font-normal text-brand-muted">ng/dL</span>`
-          : '—';
-        const totStatus = document.getElementById('disp-lab-tot-t-status');
-        if (current.totalT && current.totalT >= 850) {
-          totStatus.className = 'text-[11px] text-emerald-400 font-medium';
-          totStatus.innerText = 'On Target (~1000 Goal)';
-        } else if (current.totalT && current.totalT < 400) {
-          totStatus.className = 'text-[11px] text-amber-400 font-medium';
-          totStatus.innerText = 'Low Trough (<400)';
-        } else {
-          totStatus.className = 'text-[11px] text-brand-cyan font-medium';
-          totStatus.innerText = 'Titrating Upward';
-        }
-
-        // E2
-        document.getElementById('disp-lab-e2').innerHTML = current.e2 !== null && current.e2 !== undefined
-          ? `${current.e2} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`
-          : '—';
-        const e2Status = document.getElementById('disp-lab-e2-status');
-        if (current.e2 !== null && current.e2 < 11.3) {
-          e2Status.className = 'text-[11px] text-amber-400 font-medium';
-          e2Status.innerText = 'Low Trough (< 11.3 pg/mL)';
-        } else if (current.e2 !== null && current.e2 > 43.2) {
-          e2Status.className = 'text-[11px] text-amber-400 font-medium';
-          e2Status.innerText = 'Above Ref (> 43.2)';
-        } else {
-          e2Status.className = 'text-[11px] text-emerald-400 font-medium';
-          e2Status.innerText = 'Sweet Spot (11.3–43.2)';
-        }
-
-        // Free T
-        document.getElementById('disp-lab-free-t').innerHTML = current.freeT !== null && current.freeT !== undefined
-          ? `${current.freeT}`
-          : '—';
-        document.getElementById('disp-lab-free-t-unit').innerText = current.freeTUnit || 'Direct Free T';
-
-        // PSA
-        document.getElementById('disp-lab-psa').innerHTML = current.psa !== null && current.psa !== undefined
-          ? `${Number(current.psa).toFixed(3)} <span class="text-xs font-normal text-brand-muted">ng/mL</span>`
-          : '—';
-
-        // T:E2 Ratio
-        if (current.totalT && current.e2) {
-          const ratio = (current.totalT / current.e2).toFixed(1);
-          document.getElementById('disp-lab-ratio').innerText = `${ratio} : 1`;
-        } else {
-          document.getElementById('disp-lab-ratio').innerText = '—';
-        }
-
-        // Extra (HCT / SHBG / Notes)
-        const hctTxt = current.hct ? `${current.hct}%` : '—';
-        const shbgTxt = current.shbg ? `${current.shbg}` : '—';
-        document.getElementById('disp-lab-extra').innerText = `HCT: ${hctTxt} | SHBG: ${shbgTxt}`;
-        document.getElementById('disp-lab-notes').innerText = current.notes || 'Trough Panel';
-      }
-
-      renderLabChart(labs);
-    }
-
-    function renderLabChart(labs) {
-      const container = document.getElementById('lab-chart-container');
-      const chronological = [...labs].reverse();
-      if (chronological.length < 2) {
-        container.innerHTML = `<p class="text-xs text-brand-muted text-center pt-10">Add at least 2 panels to view trendline.</p>`;
-        return;
-      }
-
-      const w = 320, h = 120, padX = 28, padY = 18;
-      const maxT = 1100;
-      const stepX = (w - padX * 2) / (chronological.length - 1);
-      const yGoal = h - padY - (1000 / maxT) * (h - padY * 2);
-
-      let tPoints = [];
-      let e2Points = [];
-      let labels = '';
-      let dots = '';
-
-      chronological.forEach((p, i) => {
-        const x = padX + i * stepX;
-        const yT = h - padY - ((p.totalT || 0) / maxT) * (h - padY * 2);
-        tPoints.push(`${x},${yT}`);
-
-        dots += `<circle cx="${x}" cy="${yT}" r="3.5" fill="#0ea5e9" />`;
-        dots += `<text x="${x}" y="${yT - 7}" fill="#e2ecf7" font-size="9" font-weight="bold" text-anchor="middle">${Math.round(p.totalT)}</text>`;
-
-        if (p.e2) {
-          const yE2 = h - padY - ((p.e2 * 15) / maxT) * (h - padY * 2);
-          e2Points.push(`${x},${yE2}`);
-          dots += `<circle cx="${x}" cy="${yE2}" r="3" fill="#34d399" />`;
-        }
-
-        const shortDate = p.date.slice(5);
-        labels += `<text x="${x}" y="${h - 2}" fill="#7e9cb8" font-size="9" text-anchor="middle">${shortDate}</text>`;
-      });
-
-      container.innerHTML = `
-        <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
-          <line x1="${padX}" y1="${yGoal}" x2="${w - padX}" y2="${yGoal}" stroke="#1f344d" stroke-width="1" stroke-dasharray="4,4" />
-          <text x="${w - padX}" y="${yGoal - 3}" fill="#7e9cb8" font-size="8" text-anchor="end">1000 Goal</text>
-          <polyline fill="none" stroke="#0ea5e9" stroke-width="2.5" points="${tPoints.join(' ')}" />
-          ${e2Points.length > 1 ? `<polyline fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="3,3" points="${e2Points.join(' ')}" />` : ''}
-          ${dots}
-          ${labels}
-        </svg>
-      `;
-    }
-
-    function addLabPanel() {
-      const date = document.getElementById('new-lab-date').value;
-      const provider = document.getElementById('new-lab-provider').value.trim() || 'AccessLabs';
-      const totalT = parseFloat(document.getElementById('new-lab-tott').value);
-      if (!date || isNaN(totalT)) return alert('Please enter at least the Draw Date and Total Testosterone.');
-
-      const e2Val = parseFloat(document.getElementById('new-lab-e2').value);
-      const freeVal = parseFloat(document.getElementById('new-lab-freet').value);
-      const psaVal = parseFloat(document.getElementById('new-lab-psa').value);
-      const hctVal = parseFloat(document.getElementById('new-lab-hct').value);
-      const shbgVal = parseFloat(document.getElementById('new-lab-shbg').value);
-      const notes = document.getElementById('new-lab-notes').value.trim();
-
-      const labs = getLabs();
-      labs.push({
-        date,
-        provider,
-        totalT,
-        e2: isNaN(e2Val) ? null : e2Val,
-        freeT: isNaN(freeVal) ? null : freeVal,
-        freeTUnit: 'ng/dL',
-        psa: isNaN(psaVal) ? null : psaVal,
-        hct: isNaN(hctVal) ? null : hctVal,
-        shbg: isNaN(shbgVal) ? null : shbgVal,
-        notes: notes || 'Trough Panel (No AI)'
-      });
-
-      saveLabs(labs);
-      selectedLabIdx = 0;
-      updateUI();
-    }
-
-    function deleteSelectedLabPanel() {
-      const labs = getLabs();
-      if (labs.length <= 1) return alert('Cannot delete the last remaining lab panel.');
-      if (confirm(`Delete lab panel from ${labs[selectedLabIdx].date}?`)) {
-        labs.splice(selectedLabIdx, 1);
-        selectedLabIdx = 0;
-        saveLabs(labs);
-        updateUI();
-      }
+      updateDriveUIState();
     }
 
     function updateSiteRotation(history, sites) {
       const container = document.getElementById('site-rotation-container');
       container.innerHTML = '';
+      if (sites.length === 0) {
+        container.innerHTML = '<p class="text-xs text-brand-muted py-2">No injection sites configured.</p>';
+        return;
+      }
+
       const lastUsed = {};
       history.forEach((h, index) => {
-        if (!lastUsed[h.site]) lastUsed[h.site] = index + 1;
+        if (!lastUsed[h.site]) {
+          lastUsed[h.site] = index + 1;
+        }
       });
 
       const sortedSites = [...sites].sort((a, b) => {
@@ -883,26 +893,29 @@
 
       if (sortedSites.length > 0) {
         document.getElementById('dash-next-site').innerText = sortedSites[0];
-        document.getElementById('input-site').value = sortedSites[0];
+        const siteSelect = document.getElementById('input-site');
+        if (siteSelect && sortedSites.includes(sortedSites[0])) {
+          siteSelect.value = sortedSites[0];
+        }
       }
 
-      sortedSites.forEach((site, i) => {
+      sortedSites.forEach(site => {
         const rank = lastUsed[site];
-        let badge = '<span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Up Next • Rested</span>';
+        let badge = '<span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Optimal / Rested</span>';
         let borderColor = 'border-emerald-500/30';
         let dotColor = 'bg-emerald-400';
-        let subtext = 'Ready for 27g 1/2" pin';
+        let subtext = 'Ready for injection';
 
         if (rank === 1) {
-          badge = '<span class="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">Last Pinned</span>';
+          badge = '<span class="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">Most Recent</span>';
           borderColor = 'border-amber-500/30';
           dotColor = 'bg-amber-400';
-          subtext = 'Resting until next cycle';
-        } else if (i > 0 && rank !== undefined) {
+          subtext = 'Cooling down';
+        } else if (rank === 2) {
           badge = '<span class="text-xs font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded">Rested</span>';
           borderColor = 'border-sky-500/30';
           dotColor = 'bg-sky-400';
-          subtext = 'Available in rotation';
+          subtext = '2nd to last pin';
         }
 
         const div = document.createElement('div');
@@ -921,6 +934,9 @@
       });
     }
 
+    // ----------------------------------------------------
+    // Calendar Logic
+    // ----------------------------------------------------
     function changeMonth(delta) {
       calMonth += delta;
       if (calMonth < 0) { calMonth = 11; calYear--; }
@@ -930,7 +946,10 @@
 
     function toLocalYMD(timestamp) {
       const d = new Date(timestamp);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
     }
 
     function renderCalendar() {
@@ -951,12 +970,11 @@
       const grid = document.getElementById('calendar-grid');
       grid.innerHTML = '';
 
-      for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div></div>`;
+      }
 
       for (let day = 1; day <= daysInMonth; day++) {
-        const dateObj = new Date(calYear, calMonth, day);
-        const dow = dateObj.getDay(); // 0 = Sun, 4 = Thu
-        const isTargetPinDay = (dow === 0 || dow === 4);
         const ymd = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const hasPins = pinMap[ymd] && pinMap[ymd].length > 0;
         const isSelected = ymd === selectedCalDateStr;
@@ -964,16 +982,12 @@
         const baseStyle = isSelected
           ? 'bg-brand-cyan text-brand-dark font-bold border-brand-cyan'
           : hasPins
-            ? 'bg-brand-surface text-white font-bold border-brand-cyan/70'
-            : isTargetPinDay
-              ? 'bg-brand-surface/90 text-slate-200 border-brand-cyan/25'
-              : 'bg-brand-surface/40 text-brand-muted border-brand-border/30';
+            ? 'bg-brand-surface text-white font-bold border-brand-cyan/60'
+            : 'bg-brand-surface/50 text-brand-muted border-brand-border/40';
 
         const dot = hasPins
           ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : 'bg-brand-cyan'} mx-auto mt-0.5 block"></span>`
-          : isTargetPinDay
-            ? `<span class="w-1 h-1 rounded-full bg-brand-muted/40 mx-auto mt-0.5 block"></span>`
-            : `<span class="w-1.5 h-1.5 mx-auto mt-0.5 block"></span>`;
+          : `<span class="w-1.5 h-1.5 mx-auto mt-0.5 block"></span>`;
 
         grid.innerHTML += `
           <button onclick="selectCalendarDate('${ymd}')" class="py-2 rounded-xl border ${baseStyle} flex flex-col items-center justify-center transition">
@@ -1008,10 +1022,10 @@
             </div>
             <div class="flex items-center gap-1">
               <span class="font-bold text-brand-cyan px-2 py-0.5 rounded bg-brand-cyan/10">${item.dose} mg</span>
-              <button onclick="editDose(${item.idx})" class="text-brand-muted hover:text-brand-cyan p-1">
+              <button onclick="editDose(${item.idx})" class="text-brand-muted hover:text-brand-cyan p-1" title="Edit Pin">
                 <span class="material-symbols-outlined text-sm">edit</span>
               </button>
-              <button onclick="deleteDose(${item.idx})" class="text-brand-muted hover:text-red-400 p-1">
+              <button onclick="deleteDose(${item.idx})" class="text-brand-muted hover:text-red-400 p-1" title="Delete Pin">
                 <span class="material-symbols-outlined text-sm">delete</span>
               </button>
             </div>
@@ -1021,17 +1035,28 @@
     }
 
     function jumpToLogForSelectedDate() {
-      document.getElementById('input-date').value = `${selectedCalDateStr}T08:00`;
+      document.getElementById('input-date').value = `${selectedCalDateStr}T09:00`;
       switchTab('dashboard');
       document.getElementById('log-dose-card').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ----------------------------------------------------
+    // Pin Logging & Dose Actions
+    // ----------------------------------------------------
     function logDose() {
       const doseMg = parseFloat(document.getElementById('input-dose').value) || 0;
       const site = document.getElementById('input-site').value;
       const rawDate = document.getElementById('input-date').value;
 
-      if (doseMg <= 0) return alert('Please enter a valid dose in mg.');
+      if (doseMg <= 0) {
+        showToast('Please enter a valid dose in mg.', 'error');
+        return;
+      }
+
+      if (!site) {
+        showToast('Please select or configure an injection site.', 'error');
+        return;
+      }
 
       const dateObj = rawDate ? new Date(rawDate) : new Date();
       const dateText = formatDateText(dateObj);
@@ -1052,6 +1077,12 @@
 
       updateUI();
       resetToNow();
+      showToast(`Logged ${doseMg}mg pin to ${site}`, 'success');
+
+      // Auto-Sync to Google Drive if configured and authenticated
+      if (cachedAccessToken && isAutoSyncEnabled()) {
+        backupToGoogleDriveSilently();
+      }
     }
 
     function editDose(idx) {
@@ -1059,13 +1090,37 @@
       const entry = history[idx];
       if (!entry) return;
 
-      const newDoseStr = prompt(`Edit Dose (mg):`, entry.dose);
-      if (newDoseStr === null) return;
-      const newDose = parseFloat(newDoseStr);
-      if (isNaN(newDose) || newDose <= 0) return alert('Invalid dose amount.');
+      editingDoseIdx = idx;
+      document.getElementById('edit-dose-mg').value = entry.dose;
 
-      const newSite = prompt(`Edit Injection Site:`, entry.site);
-      if (newSite === null || !newSite.trim()) return;
+      const editSiteSelect = document.getElementById('edit-dose-site');
+      editSiteSelect.innerHTML = '';
+      getSites().forEach(s => {
+        editSiteSelect.innerHTML += `<option value="${s}">${s}</option>`;
+      });
+      editSiteSelect.value = entry.site;
+
+      document.getElementById('edit-dose-modal').classList.remove('hidden');
+    }
+
+    function closeEditDoseModal() {
+      document.getElementById('edit-dose-modal').classList.add('hidden');
+      editingDoseIdx = -1;
+    }
+
+    function submitEditDose() {
+      if (editingDoseIdx < 0) return;
+      const history = getHistory();
+      const entry = history[editingDoseIdx];
+      if (!entry) return;
+
+      const newDose = parseFloat(document.getElementById('edit-dose-mg').value);
+      const newSite = document.getElementById('edit-dose-site').value;
+
+      if (isNaN(newDose) || newDose <= 0) {
+        showToast('Please enter a valid dose amount.', 'error');
+        return;
+      }
 
       const cfg = getConfig();
       const oldMl = entry.dose / cfg.concentration;
@@ -1074,46 +1129,105 @@
       saveConfig(cfg);
 
       entry.dose = newDose;
-      entry.site = newSite.trim();
+      entry.site = newSite;
       saveHistory(history);
+
+      closeEditDoseModal();
       updateUI();
+      showToast('Pin updated successfully!', 'success');
     }
 
     function deleteDose(idx) {
-      if (confirm('Delete this dose entry? Volume will be refunded to your vial.')) {
-        const history = getHistory();
-        const cfg = getConfig();
-        const refundMl = history[idx].dose / cfg.concentration;
-        cfg.vialVolume += refundMl;
-        saveConfig(cfg);
+      const history = getHistory();
+      const item = history[idx];
+      if (!item) return;
 
-        history.splice(idx, 1);
-        saveHistory(history);
-        updateUI();
-      }
+      showConfirmDialog({
+        title: 'Delete Injection Entry',
+        subtitle: `${item.dateText} — ${item.site} (${item.dose}mg)`,
+        message: 'Delete this dose entry? The volume injected will be refunded back to your remaining vial volume calculation.',
+        confirmText: 'Delete Pin',
+        isDanger: true,
+        onConfirm: () => {
+          const cfg = getConfig();
+          const refundMl = item.dose / cfg.concentration;
+          cfg.vialVolume += refundMl;
+          saveConfig(cfg);
+
+          history.splice(idx, 1);
+          saveHistory(history);
+          updateUI();
+          showToast('Pin deleted and vial volume refunded.', 'success');
+        }
+      });
     }
 
     function saveSettings() {
       const cfg = {
-        weeklyDose: parseFloat(document.getElementById('set-weekly-dose').value) || 120,
-        schedule: document.getElementById('set-schedule').value.trim() || '60mg Thu & Sun',
-        compound: document.getElementById('set-compound').value.trim() || 'Testosterone Cypionate',
-        needle: document.getElementById('set-needle').value.trim() || '27g 1/2" Delt',
+        weeklyDose: parseFloat(document.getElementById('set-weekly-dose').value) || 140,
+        compound: document.getElementById('set-compound').value || 'Testosterone Cypionate',
         concentration: parseFloat(document.getElementById('set-concentration').value) || 200,
-        vialVolume: parseFloat(document.getElementById('set-vial-vol').value) || 10.0
+        vialVolume: parseFloat(document.getElementById('set-vial-vol').value) || 10.0,
+        labTotalT: parseFloat(document.getElementById('set-lab-tot-t').value) || 0,
+        labFreeT: parseFloat(document.getElementById('set-lab-free-t').value) || 0,
+        labE2: parseFloat(document.getElementById('set-lab-e2').value) || 0,
+        labHct: parseFloat(document.getElementById('set-lab-hct').value) || 0,
+        labDate: document.getElementById('set-lab-date').value || 'Updated'
       };
       saveConfig(cfg);
-      document.getElementById('input-dose').value = Math.round(cfg.weeklyDose / 2);
       updateUI();
+      showToast('Settings saved successfully!', 'success');
       switchTab('dashboard');
+    }
+
+    // ----------------------------------------------------
+    // CSV Export & Backup Utilities
+    // ----------------------------------------------------
+    function generateCSVContent() {
+      const history = getHistory();
+      const cfg = getConfig();
+
+      const headers = ['Date', 'Time', 'Depot Site', 'Dose (mg)', 'Volume Injected (mL)', 'Compound', 'Concentration (mg/mL)', 'Vial Balance (mL)'];
+      const rows = history.map(item => {
+        const d = new Date(item.timestamp);
+        const dateStr = d.toLocaleDateString('en-US');
+        const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const volMl = (item.dose / cfg.concentration).toFixed(3);
+        const safeSite = `"${(item.site || '').replace(/"/g, '""')}"`;
+        const safeCompound = `"${(cfg.compound || 'Testosterone Cypionate').replace(/"/g, '""')}"`;
+        return [dateStr, timeStr, safeSite, item.dose, volMl, safeCompound, cfg.concentration, cfg.vialVolume.toFixed(2)].join(',');
+      });
+
+      return [headers.join(','), ...rows].join('\r\n');
+    }
+
+    function exportCSV() {
+      const history = getHistory();
+      if (history.length === 0) {
+        showToast('No doses logged yet to export.', 'info');
+        return;
+      }
+      const csvContent = generateCSVContent();
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `androlog-history-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('CSV export downloaded!', 'success');
     }
 
     function exportData() {
       const payload = {
+        app: "AndroLog",
+        version: "1.0",
+        exportedAt: new Date().toISOString(),
         config: getConfig(),
         sites: getSites(),
-        doses: getHistory(),
-        labs: getLabs()
+        doses: getHistory()
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -1121,6 +1235,7 @@
       a.href = url;
       a.download = `androlog-backup-${new Date().toISOString().slice(0,10)}.json`;
       a.click();
+      showToast('JSON backup exported!', 'success');
     }
 
     function importData(event) {
@@ -1130,24 +1245,41 @@
       reader.onload = e => {
         try {
           const data = JSON.parse(e.target.result);
-          if (data.config) saveConfig(data.config);
-          if (data.sites) localStorage.setItem('androlog_sites', JSON.stringify(data.sites));
-          if (data.doses) saveHistory(data.doses);
-          if (data.labs) saveLabs(data.labs);
-          updateUI();
-          alert('Backup restored!');
+          showConfirmDialog({
+            title: 'Restore JSON Backup',
+            subtitle: file.name,
+            message: 'Restoring this backup file will overwrite your current settings, doses, and sites with the file contents. Proceed?',
+            confirmText: 'Restore Now',
+            isDanger: true,
+            onConfirm: () => {
+              if (data.config) saveConfig(data.config);
+              if (data.sites) localStorage.setItem('androlog_sites', JSON.stringify(data.sites));
+              if (data.doses) saveHistory(data.doses);
+              updateUI();
+              showToast('Backup restored successfully!', 'success');
+            }
+          });
         } catch (err) {
-          alert('Invalid backup file.');
+          showToast('Invalid backup file format.', 'error');
         }
       };
       reader.readAsText(file);
+      event.target.value = '';
     }
 
     function clearSampleData() {
-      if (confirm('Are you sure you want to clear all logged doses? This cannot be undone.')) {
-        saveHistory([]);
-        updateUI();
-      }
+      showConfirmDialog({
+        title: 'Clear All Dose History',
+        subtitle: 'Start completely fresh',
+        message: 'Are you sure you want to delete all recorded injections? Your custom protocol and sites will be kept, but all pin history will be permanently cleared.',
+        confirmText: 'Clear Doses',
+        isDanger: true,
+        onConfirm: () => {
+          saveHistory([]);
+          updateUI();
+          showToast('All dose history cleared.', 'success');
+        }
+      });
     }
 
     function switchTab(tabName) {
@@ -1170,14 +1302,553 @@
       window.scrollTo(0, 0);
     }
 
+    // ----------------------------------------------------
+    // Google Drive Integration & Firebase Auth
+    // ----------------------------------------------------
+    const DRIVE_FOLDER_NAME = 'AndroLog TRT';
+    let cachedDriveFolderId = null;
+
+    // Load Firebase Config & Initialize Auth
+    async function initFirebase() {
+      try {
+        let firebaseConfig = null;
+        try {
+          const res = await fetch('./firebase-applet-config.json');
+          if (res.ok) {
+            firebaseConfig = await res.json();
+          }
+        } catch (e) {
+          console.warn('Could not load firebase-applet-config.json via fetch, using default');
+        }
+
+        if (!firebaseConfig) {
+          console.error('No Firebase config available');
+          return;
+        }
+
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+
+        // Listen for authentication changes
+        onAuthStateChanged(auth, async (user) => {
+          currentUser = user;
+          if (user) {
+            updateDriveUIState();
+            if (cachedAccessToken) {
+              loadDriveBackupsList();
+            }
+          } else {
+            cachedAccessToken = null;
+            currentUser = null;
+            cachedDriveFolderId = null;
+            updateDriveUIState();
+          }
+        });
+      } catch (err) {
+        console.error('Firebase initialization error:', err);
+      }
+    }
+
+    function updateDriveUIState() {
+      const isAuth = !!currentUser && !!cachedAccessToken;
+      const unauthView = document.getElementById('drive-unauth-view');
+      const authView = document.getElementById('drive-auth-view');
+      const statusBadge = document.getElementById('drive-status-badge');
+      const connStatus = document.getElementById('drive-connection-status');
+      const headerLabel = document.getElementById('header-drive-label');
+      const headerDot = document.getElementById('header-drive-dot');
+
+      if (isAuth) {
+        if (unauthView) unauthView.classList.add('hidden');
+        if (authView) authView.classList.remove('hidden');
+        if (statusBadge) {
+          statusBadge.innerText = 'Connected';
+          statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+        }
+        if (connStatus) connStatus.innerText = currentUser.email || 'Cloud sync active';
+        if (headerLabel) headerLabel.innerText = 'Synced';
+        if (headerDot) {
+          headerDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        }
+
+        document.getElementById('drive-user-name').innerText = currentUser.displayName || 'Google Account';
+        document.getElementById('drive-user-email').innerText = currentUser.email || '';
+        const photoEl = document.getElementById('drive-user-photo');
+        if (photoEl) {
+          photoEl.src = currentUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&q=80';
+        }
+
+        // Restore auto-sync toggle setting
+        const autoSyncCheckbox = document.getElementById('drive-auto-sync');
+        if (autoSyncCheckbox) {
+          autoSyncCheckbox.checked = isAutoSyncEnabled();
+        }
+      } else {
+        if (unauthView) unauthView.classList.remove('hidden');
+        if (authView) authView.classList.add('hidden');
+        if (statusBadge) {
+          statusBadge.innerText = 'Disconnected';
+          statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surface text-brand-muted border border-brand-border';
+        }
+        if (connStatus) connStatus.innerText = 'Cloud sync & remote backup';
+        if (headerLabel) headerLabel.innerText = 'Drive';
+        if (headerDot) {
+          headerDot.className = 'w-2 h-2 rounded-full bg-slate-500';
+        }
+      }
+    }
+
+    function isAutoSyncEnabled() {
+      return localStorage.getItem('androlog_auto_sync') === 'true';
+    }
+
+    function toggleAutoSync(event) {
+      localStorage.setItem('androlog_auto_sync', event.target.checked ? 'true' : 'false');
+      if (event.target.checked) {
+        showToast('Auto-backup enabled: pins will sync to Google Drive.', 'success');
+      } else {
+        showToast('Auto-backup disabled.', 'info');
+      }
+    }
+
+    async function handleGoogleSignIn() {
+      if (!auth) {
+        showToast('Authentication is initializing, please try again.', 'info');
+        return;
+      }
+      try {
+        isSigningIn = true;
+        const provider = new GoogleAuthProvider();
+        provider.addScope('https://www.googleapis.com/auth/drive');
+        provider.addScope('https://www.googleapis.com/auth/drive.file');
+        provider.addScope('https://www.googleapis.com/auth/drive.appdata');
+        provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+        provider.addScope('https://www.googleapis.com/auth/drive.metadata');
+        provider.setCustomParameters({ prompt: 'consent' });
+
+        const result = await signInWithPopup(auth, provider);
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        if (!credential?.accessToken) {
+          throw new Error('Could not obtain Google Drive OAuth access token.');
+        }
+
+        cachedAccessToken = credential.accessToken;
+        currentUser = result.user;
+        updateDriveUIState();
+        showToast(`Connected to Google Drive as ${currentUser.email}!`, 'success');
+        await loadDriveBackupsList();
+      } catch (err) {
+        console.error('Google Sign-in error:', err);
+        showToast(err.message || 'Failed to sign in with Google.', 'error');
+      } finally {
+        isSigningIn = false;
+      }
+    }
+
+    async function handleGoogleSignOut() {
+      if (!auth) return;
+      try {
+        await signOut(auth);
+        cachedAccessToken = null;
+        currentUser = null;
+        cachedDriveFolderId = null;
+        updateDriveUIState();
+        showToast('Signed out of Google Drive.', 'info');
+      } catch (err) {
+        console.error('Sign-out error:', err);
+        showToast('Sign out error: ' + err.message, 'error');
+      }
+    }
+
+    // Google Drive v3 Folder Management
+    async function getOrCreateDriveFolder() {
+      if (cachedDriveFolderId) return cachedDriveFolderId;
+      if (!cachedAccessToken) throw new Error('Not connected to Google Drive.');
+
+      const query = encodeURIComponent(`name = '${DRIVE_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${cachedAccessToken}` }
+      });
+
+      if (!searchRes.ok) {
+        const err = await searchRes.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Could not verify Google Drive folder.');
+      }
+
+      const searchData = await searchRes.json();
+      if (searchData.files && searchData.files.length > 0) {
+        cachedDriveFolderId = searchData.files[0].id;
+        return cachedDriveFolderId;
+      }
+
+      // Folder doesn't exist yet, create 'AndroLog TRT'
+      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${cachedAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: DRIVE_FOLDER_NAME,
+          mimeType: 'application/vnd.google-apps.folder',
+          description: 'AndroLog precision TRT cloud backups and dose logs.'
+        })
+      });
+
+      if (!createRes.ok) {
+        const err = await createRes.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Failed to create Google Drive folder.');
+      }
+
+      const newFolder = await createRes.json();
+      cachedDriveFolderId = newFolder.id;
+      return cachedDriveFolderId;
+    }
+
+    // Google Drive v3 Multipart File Upload
+    async function uploadFileToDrive(fileName, mimeType, contentString) {
+      const folderId = await getOrCreateDriveFolder();
+      const boundary = '-------androlog' + Math.random().toString(36).substring(2);
+      const delimiter = "\r\n--" + boundary + "\r\n";
+      const close_delim = "\r\n--" + boundary + "--";
+
+      const metadata = {
+        name: fileName,
+        mimeType: mimeType,
+        parents: [folderId]
+      };
+
+      const multipartRequestBody =
+        delimiter +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metadata) +
+        delimiter +
+        `Content-Type: ${mimeType}; charset=UTF-8\r\n\r\n` +
+        contentString +
+        close_delim;
+
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${cachedAccessToken}`,
+          'Content-Type': `multipart/related; boundary="${boundary}"`
+        },
+        body: multipartRequestBody
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'File upload to Google Drive failed.');
+      }
+
+      return await res.json();
+    }
+
+    // Google Drive v3 File Retrieval & Deletion
+    async function downloadDriveFile(fileId) {
+      if (!cachedAccessToken) throw new Error('Not connected to Google Drive.');
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${cachedAccessToken}` }
+      });
+      if (!res.ok) {
+        throw new Error('Failed to retrieve file contents from Google Drive.');
+      }
+      return await res.text();
+    }
+
+    async function deleteDriveFile(fileId) {
+      if (!cachedAccessToken) throw new Error('Not connected to Google Drive.');
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${cachedAccessToken}` }
+      });
+      if (!res.ok && res.status !== 204) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Could not delete file from Google Drive.');
+      }
+      return true;
+    }
+
+    // Backup current data snapshot to Google Drive
+    async function backupToGoogleDrive() {
+      if (!cachedAccessToken) {
+        showToast('Please sign in with Google first.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-backup-drive');
+      const prevHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span> Backing Up...';
+        btn.disabled = true;
+      }
+
+      try {
+        const payload = {
+          app: "AndroLog",
+          version: "1.0",
+          exportedAt: new Date().toISOString(),
+          config: getConfig(),
+          sites: getSites(),
+          doses: getHistory()
+        };
+        const jsonStr = JSON.stringify(payload, null, 2);
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const timeStr = new Date().toTimeString().slice(0, 5).replace(':', '');
+        const fileName = `AndroLog-Backup-${dateStr}-${timeStr}.json`;
+
+        await uploadFileToDrive(fileName, 'application/json', jsonStr);
+        showToast(`Backup saved to Google Drive (${DRIVE_FOLDER_NAME})!`, 'success');
+        await loadDriveBackupsList();
+      } catch (err) {
+        console.error('Google Drive backup error:', err);
+        showToast(err.message || 'Failed to backup to Google Drive.', 'error');
+      } finally {
+        if (btn) {
+          btn.innerHTML = prevHtml;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Silent background sync
+    async function backupToGoogleDriveSilently() {
+      if (!cachedAccessToken) return;
+      try {
+        const payload = {
+          app: "AndroLog",
+          version: "1.0",
+          exportedAt: new Date().toISOString(),
+          config: getConfig(),
+          sites: getSites(),
+          doses: getHistory()
+        };
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const timeStr = new Date().toTimeString().slice(0, 5).replace(':', '');
+        const fileName = `AndroLog-Backup-${dateStr}-${timeStr}.json`;
+        await uploadFileToDrive(fileName, 'application/json', JSON.stringify(payload, null, 2));
+        showToast('Auto-synced to Google Drive', 'info');
+      } catch (e) {
+        console.warn('Auto-sync notice:', e.message);
+      }
+    }
+
+    // Save CSV to Google Drive
+    async function exportCSVToGoogleDrive() {
+      if (!cachedAccessToken) {
+        showToast('Please sign in with Google first.', 'error');
+        return;
+      }
+      const history = getHistory();
+      if (history.length === 0) {
+        showToast('No doses recorded to export.', 'info');
+        return;
+      }
+
+      const btn = document.getElementById('btn-export-csv-drive');
+      const prevHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span> Saving CSV...';
+        btn.disabled = true;
+      }
+
+      try {
+        const csvContent = generateCSVContent();
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const fileName = `AndroLog-Doses-${dateStr}.csv`;
+        await uploadFileToDrive(fileName, 'text/csv', csvContent);
+        showToast(`Saved ${fileName} to Google Drive (${DRIVE_FOLDER_NAME})!`, 'success');
+        await loadDriveBackupsList();
+      } catch (err) {
+        console.error('Save CSV to Drive error:', err);
+        showToast(err.message || 'Failed to save CSV to Google Drive.', 'error');
+      } finally {
+        if (btn) {
+          btn.innerHTML = prevHtml;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Load & Render Drive Backups List
+    async function loadDriveBackupsList() {
+      const container = document.getElementById('drive-files-list');
+      if (!container) return;
+      if (!cachedAccessToken) {
+        container.innerHTML = '<p class="text-xs text-brand-muted py-2">Sign in to view Drive files.</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="flex items-center justify-center py-4 text-xs text-brand-muted gap-2">
+          <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+          <span>Accessing Google Drive (${DRIVE_FOLDER_NAME})...</span>
+        </div>
+      `;
+
+      try {
+        const folderId = await getOrCreateDriveFolder();
+        const query = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType,modifiedTime,size)&orderBy=modifiedTime desc`, {
+          headers: { Authorization: `Bearer ${cachedAccessToken}` }
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to list files from Google Drive.');
+        }
+
+        const data = await res.json();
+        const files = data.files || [];
+
+        if (files.length === 0) {
+          container.innerHTML = `
+            <div class="p-3 text-center rounded-xl bg-brand-surface border border-brand-border/60">
+              <p class="text-xs text-brand-muted">No files in your Google Drive folder yet.</p>
+              <p class="text-[10px] text-brand-cyan mt-1">Tap "Backup to Drive" above to create your first cloud snapshot.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+        files.forEach(file => {
+          const isJson = file.name.endsWith('.json') || file.mimeType === 'application/json';
+          const isCsv = file.name.endsWith('.csv') || file.mimeType === 'text/csv';
+          const fileIcon = isCsv ? 'table_view' : isJson ? 'data_object' : 'description';
+          const iconColor = isCsv ? 'text-emerald-400' : 'text-brand-cyan';
+          const dateStr = file.modifiedTime ? new Date(file.modifiedTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+          const sizeKb = file.size ? `${(file.size / 1024).toFixed(1)} KB` : '';
+
+          const itemEl = document.createElement('div');
+          itemEl.className = 'flex items-center justify-between p-2.5 rounded-xl bg-brand-surface border border-brand-border text-xs';
+          
+          let actionButtons = '';
+          if (isJson) {
+            actionButtons += `
+              <button onclick="confirmRestoreDriveBackup('${file.id}', '${file.name}')" class="px-2 py-1 rounded-lg bg-brand-card hover:bg-brand-border text-brand-cyan font-bold text-[11px] transition flex items-center gap-1 border border-brand-border" title="Restore this backup">
+                <span class="material-symbols-outlined text-xs">settings_backup_restore</span> Restore
+              </button>
+            `;
+          }
+          actionButtons += `
+            <button onclick="confirmDeleteDriveBackup('${file.id}', '${file.name}')" class="p-1 rounded-lg hover:bg-red-500/20 text-brand-muted hover:text-red-400 transition" title="Delete from Drive">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          `;
+
+          itemEl.innerHTML = `
+            <div class="flex items-center gap-2 overflow-hidden pr-2">
+              <span class="material-symbols-outlined ${iconColor} text-base shrink-0">${fileIcon}</span>
+              <div class="truncate">
+                <span class="text-white font-semibold block truncate" title="${file.name}">${file.name}</span>
+                <span class="text-[10px] text-brand-muted">${dateStr} ${sizeKb ? '• ' + sizeKb : ''}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              ${actionButtons}
+            </div>
+          `;
+          container.appendChild(itemEl);
+        });
+
+      } catch (err) {
+        console.error('List Drive files error:', err);
+        container.innerHTML = `
+          <div class="p-3 text-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+            <p>Failed to load files from Google Drive.</p>
+            <p class="text-[10px] text-brand-muted mt-1">${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Confirm & Restore Google Drive Backup (Mandatory User Confirmation)
+    function confirmRestoreDriveBackup(fileId, fileName) {
+      showConfirmDialog({
+        title: 'Restore from Google Drive',
+        subtitle: fileName,
+        message: `Restoring this backup will replace your current doses, injection sites, and protocol settings with the data in "${fileName}". Are you sure you want to proceed?`,
+        confirmText: 'Restore Backup',
+        isDanger: true,
+        onConfirm: async () => {
+          try {
+            showToast('Downloading backup from Google Drive...', 'info');
+            const raw = await downloadDriveFile(fileId);
+            const data = JSON.parse(raw);
+            if (data.config) saveConfig(data.config);
+            if (data.sites) localStorage.setItem('androlog_sites', JSON.stringify(data.sites));
+            if (data.doses) saveHistory(data.doses);
+            updateUI();
+            showToast('Backup restored successfully from Google Drive!', 'success');
+          } catch (err) {
+            console.error('Drive restore error:', err);
+            showToast('Failed to restore: ' + (err.message || 'Invalid file format'), 'error');
+          }
+        }
+      });
+    }
+
+    // Confirm & Delete Google Drive File (Mandatory User Confirmation)
+    function confirmDeleteDriveBackup(fileId, fileName) {
+      showConfirmDialog({
+        title: 'Delete from Google Drive',
+        subtitle: fileName,
+        message: `Are you sure you want to permanently delete "${fileName}" from your Google Drive? This action cannot be undone.`,
+        confirmText: 'Delete File',
+        isDanger: true,
+        onConfirm: async () => {
+          try {
+            await deleteDriveFile(fileId);
+            showToast(`Deleted "${fileName}" from Google Drive.`, 'success');
+            await loadDriveBackupsList();
+          } catch (err) {
+            console.error('Drive delete error:', err);
+            showToast('Failed to delete: ' + err.message, 'error');
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // Window Scope Exports for Inline Handlers
+    // ----------------------------------------------------
+    window.switchTab = switchTab;
+    window.resetToNow = resetToNow;
+    window.logDose = logDose;
+    window.editDose = editDose;
+    window.closeEditDoseModal = closeEditDoseModal;
+    window.submitEditDose = submitEditDose;
+    window.deleteDose = deleteDose;
+    window.exportCSV = exportCSV;
+    window.exportData = exportData;
+    window.importData = importData;
+    window.saveSettings = saveSettings;
+    window.clearSampleData = clearSampleData;
+    window.addSite = addSite;
+    window.removeSiteIndex = removeSiteIndex;
+    window.changeMonth = changeMonth;
+    window.selectCalendarDate = selectCalendarDate;
+    window.jumpToLogForSelectedDate = jumpToLogForSelectedDate;
+    window.handleGoogleSignIn = handleGoogleSignIn;
+    window.handleGoogleSignOut = handleGoogleSignOut;
+    window.backupToGoogleDrive = backupToGoogleDrive;
+    window.exportCSVToGoogleDrive = exportCSVToGoogleDrive;
+    window.loadDriveBackupsList = loadDriveBackupsList;
+    window.confirmRestoreDriveBackup = confirmRestoreDriveBackup;
+    window.confirmDeleteDriveBackup = confirmDeleteDriveBackup;
+    window.toggleAutoSync = toggleAutoSync;
+
+    // Service Worker Registration
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
 
+    // App Initialization
     resetToNow();
     updateUI();
+    initFirebase();
   </script>
 </body>
 </html>
