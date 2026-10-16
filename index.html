@@ -42,6 +42,13 @@
       font-family: 'Space Grotesk', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
     /* Google Sign-in Official Material Design Button */
     .gsi-material-button {
       -webkit-user-select: none;
@@ -106,7 +113,7 @@
         <span id="header-drive-label">Drive</span>
       </button>
       <button onclick="switchTab('settings')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border">
-        <span class="material-symbols-outlined text-xs text-brand-cyan">tune</span> Edit
+        <span class="material-symbols-outlined text-xs text-brand-cyan">tune</span> Setup
       </button>
     </div>
   </header>
@@ -120,9 +127,13 @@
       <div class="bg-brand-card border border-brand-border rounded-2xl p-4 relative overflow-hidden shadow-lg">
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-xs font-semibold text-brand-cyan uppercase tracking-wider">Current Protocol</span>
-            <h2 class="text-xl font-bold text-white mt-0.5" id="dash-weekly-dose">140 mg / week</h2>
+            <span class="text-xs font-semibold text-brand-cyan uppercase tracking-wider">Current Protocol • No AI</span>
+            <h2 class="text-xl font-bold text-white mt-0.5" id="dash-weekly-dose">120 mg / week</h2>
             <p class="text-xs text-brand-muted mt-1" id="dash-compound">Testosterone Cypionate (200 mg/mL)</p>
+            <div class="flex items-center gap-1.5 mt-2">
+              <span class="text-[10px] font-bold bg-brand-surface text-brand-cyan px-2 py-0.5 rounded border border-brand-border" id="dash-schedule-badge">60mg Thu & Sun</span>
+              <span class="text-[10px] font-bold bg-brand-surface text-emerald-400 px-2 py-0.5 rounded border border-brand-border" id="dash-needle-badge">27g 1/2" Delt</span>
+            </div>
           </div>
           <div class="text-right">
             <span class="text-xs text-brand-muted block">Next Depot</span>
@@ -132,8 +143,8 @@
         <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-brand-border/60">
           <div class="bg-brand-surface/70 p-3 rounded-xl border border-brand-border/40">
             <span class="text-[11px] text-brand-muted block">Vial Volume</span>
-            <span class="text-lg font-bold text-white" id="dash-vial-vol">10.0 mL</span>
-            <span class="text-[10px] text-brand-muted block" id="dash-vial-doses">~20 doses left</span>
+            <span class="text-lg font-bold text-white" id="dash-vial-vol">10.00 mL</span>
+            <span class="text-[10px] text-brand-muted block" id="dash-vial-doses">~33 doses left</span>
           </div>
           <div class="bg-brand-surface/70 p-3 rounded-xl border border-brand-border/40">
             <span class="text-[11px] text-brand-muted block">Last Pin</span>
@@ -154,13 +165,18 @@
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div>
             <label class="text-brand-muted block mb-1">Dose (mg)</label>
-            <input type="number" id="input-dose" value="70" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+            <input type="number" id="input-dose" value="60" oninput="updateSyringeHelper()" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
           </div>
           <div>
             <label class="text-brand-muted block mb-1">Depot Site</label>
             <select id="input-site" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
             </select>
           </div>
+        </div>
+        <!-- Dynamic Syringe Draw Helper -->
+        <div class="bg-brand-surface/80 border border-brand-border/60 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
+          <span class="text-brand-muted" id="syringe-needle-label">27g 1/2" Draw Volume:</span>
+          <span class="font-bold text-brand-cyan" id="syringe-draw-helper">0.30 mL (30 Units on U-100)</span>
         </div>
         <div>
           <label class="text-brand-muted block text-xs mb-1">Date & Time (Change to backdate missed pins)</label>
@@ -182,34 +198,32 @@
             <span class="material-symbols-outlined text-xs">download</span> Export CSV
           </button>
         </div>
-        <div id="dose-history-list" class="space-y-2 text-sm">
-          <p class="text-xs text-brand-muted text-center py-4">No doses logged yet. Use the form above to add your first pin.</p>
-        </div>
+        <div id="dose-history-list" class="space-y-2 text-sm"></div>
       </div>
     </div>
 
     <!-- Tab 2: Interactive Calendar -->
     <div id="view-calendar" class="space-y-4 hidden">
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-3">
           <button onclick="changeMonth(-1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
             <span class="material-symbols-outlined text-sm">chevron_left</span>
           </button>
-          <h3 class="font-bold text-white text-base" id="cal-month-title">October 2026</h3>
+          <div class="text-center">
+            <h3 class="font-bold text-white text-base" id="cal-month-title">October 2026</h3>
+            <span class="text-[10px] text-brand-muted">Thu & Sun Target Pin Days Highlighted</span>
+          </div>
           <button onclick="changeMonth(1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
             <span class="material-symbols-outlined text-sm">chevron_right</span>
           </button>
         </div>
 
         <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-brand-muted mb-2">
-          <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+          <div class="text-brand-cyan">SUN</div><div>MON</div><div>TUE</div><div>WED</div><div class="text-brand-cyan">THU</div><div>FRI</div><div>SAT</div>
         </div>
-        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 text-center text-xs">
-          <!-- Populated by JS -->
-        </div>
+        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 text-center text-xs"></div>
       </div>
 
-      <!-- Selected Day Details & Missed Pin Trigger -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
         <div class="flex items-center justify-between">
           <h4 class="text-xs font-bold text-brand-cyan uppercase tracking-wider" id="cal-selected-label">Selected Date</h4>
@@ -217,9 +231,7 @@
             <span class="material-symbols-outlined text-sm">add</span> Log Pin on This Day
           </button>
         </div>
-        <div id="cal-day-logs" class="space-y-2 text-xs">
-          <p class="text-brand-muted py-2">Tap any date above to view or add injections.</p>
-        </div>
+        <div id="cal-day-logs" class="space-y-2 text-xs"></div>
       </div>
     </div>
 
@@ -228,8 +240,8 @@
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
         <div class="flex justify-between items-start">
           <div>
-            <h3 class="font-bold text-white text-base">Site Rotation Schedule</h3>
-            <p class="text-xs text-brand-muted mt-1">Sorted automatically: optimal & longest-rested sites at the top.</p>
+            <h3 class="font-bold text-white text-base">Deltoid Rotation Schedule</h3>
+            <p class="text-xs text-brand-muted mt-1">Alternating Left & Right Deltoids (27g 1/2" shallow IM).</p>
           </div>
           <button onclick="switchTab('settings')" class="text-xs text-brand-cyan hover:underline flex items-center gap-1">
             <span class="material-symbols-outlined text-sm">edit</span> Sites
@@ -239,45 +251,118 @@
       </div>
     </div>
 
-    <!-- Tab 4: AccessLabs Biomarkers -->
+    <!-- Tab 4: Longitudinal Biomarker History (AccessLabs & Labcorp) -->
     <div id="view-labs" class="space-y-4 hidden">
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+      
+      <!-- Total T & E2 Trajectory Chart -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="font-bold text-white text-sm">2026 Trough Trajectory (No AI)</h3>
+            <p class="text-[11px] text-brand-muted">Total T Goal: ~1000 ng/dL (Cyan) • E2 (Emerald)</p>
+          </div>
+          <span class="text-[10px] font-bold bg-brand-surface px-2 py-1 rounded border border-brand-border text-brand-cyan" id="lab-count-badge">5 Panels</span>
+        </div>
+        <div id="lab-chart-container" class="w-full h-36 pt-2"></div>
+      </div>
+
+      <!-- Lab Panel Selector Pills -->
+      <div id="lab-date-pills" class="flex gap-2 overflow-x-auto pb-1 no-scrollbar"></div>
+
+      <!-- Active Selected Lab Panel Details -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
         <div class="flex justify-between items-start">
           <div>
-            <h3 class="font-bold text-white text-base">AccessLabs Biomarkers</h3>
-            <p class="text-xs text-brand-muted">Provider: GameDay Men's Health</p>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-cyan" id="disp-lab-provider">AccessLabs • GameDay</span>
+            <h3 class="font-bold text-white text-base mt-0.5" id="disp-lab-date">09/03/2026</h3>
           </div>
-          <button onclick="switchTab('settings')" class="text-xs text-brand-cyan hover:underline flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">edit</span> Edit Values
+          <button onclick="deleteSelectedLabPanel()" class="text-xs text-brand-muted hover:text-red-400 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">delete</span>
           </button>
         </div>
+
         <div class="grid grid-cols-2 gap-3 mt-4">
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">Total Testosterone</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-tot-t">842 <span class="text-xs font-normal text-brand-muted">ng/dL</span></span>
-            <span class="text-[11px] text-emerald-400 font-medium">Target: 650–950</span>
+            <span class="text-xs text-brand-muted block">Total T (Trough)</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-tot-t">959 <span class="text-xs font-normal text-brand-muted">ng/dL</span></span>
+            <span class="text-[11px] font-medium" id="disp-lab-tot-t-status">Goal: ~1000 at Trough</span>
+          </div>
+          <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
+            <span class="text-xs text-brand-muted block">Estradiol (E2 • No AI)</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-e2">26.0 <span class="text-xs font-normal text-brand-muted">pg/mL</span></span>
+            <span class="text-[11px] font-medium" id="disp-lab-e2-status">Ref: 11.3–43.2</span>
           </div>
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
             <span class="text-xs text-brand-muted block">Free Testosterone</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-free-t">23.8 <span class="text-xs font-normal text-brand-muted">pg/mL</span></span>
-            <span class="text-[11px] text-emerald-400 font-medium">Target: 15–25</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-free-t">—</span>
+            <span class="text-[11px] text-brand-muted font-medium" id="disp-lab-free-t-unit">Direct Assay</span>
           </div>
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">Sensitive Estradiol</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-e2">28.4 <span class="text-xs font-normal text-brand-muted">pg/mL</span></span>
-            <span class="text-[11px] text-emerald-400 font-medium">Target: 20–35</span>
+            <span class="text-xs text-brand-muted block">PSA (Prostate)</span>
+            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-psa">1.120 <span class="text-xs font-normal text-brand-muted">ng/mL</span></span>
+            <span class="text-[11px] text-emerald-400 font-medium" id="disp-lab-psa-status">Safe (0.0–4.0)</span>
           </div>
           <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
-            <span class="text-xs text-brand-muted block">Hematocrit (HCT)</span>
-            <span class="text-xl font-bold text-white mt-1 block" id="disp-lab-hct">47.2 <span class="text-xs font-normal text-brand-muted">%</span></span>
-            <span class="text-[11px] text-emerald-400 font-medium" id="disp-lab-hct-status">Safe (&lt; 52.0%)</span>
+            <span class="text-xs text-brand-muted block">T : E2 Ratio</span>
+            <span class="text-xl font-bold text-brand-cyan mt-1 block" id="disp-lab-ratio">36.9 : 1</span>
+            <span class="text-[11px] text-brand-muted font-medium">Natural Aromatization</span>
           </div>
-        </div>
-        <div class="mt-4 p-3 rounded-xl bg-brand-surface border border-brand-border/60 text-xs text-brand-muted flex items-center justify-between">
-          <span>Last Draw Date:</span>
-          <span class="font-bold text-white" id="disp-lab-date">Recent</span>
+          <div class="bg-brand-surface p-3.5 rounded-xl border border-brand-border">
+            <span class="text-xs text-brand-muted block">HCT / SHBG</span>
+            <span class="text-sm font-bold text-white mt-1.5 block" id="disp-lab-extra">HCT: — | SHBG: —</span>
+            <span class="text-[11px] text-brand-muted font-medium" id="disp-lab-notes">Panel Notes</span>
+          </div>
         </div>
       </div>
+
+      <!-- Log New Lab Panel Card -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <span class="material-symbols-outlined text-brand-cyan text-lg">add_chart</span> Log New Trough Blood Draw
+        </h3>
+        <div class="grid grid-cols-2 gap-2.5 text-xs">
+          <div>
+            <label class="text-brand-muted block mb-1">Draw Date</label>
+            <input type="date" id="new-lab-date" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Lab / Provider</label>
+            <input type="text" id="new-lab-provider" value="AccessLabs • GameDay" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Total T (ng/dL)</label>
+            <input type="number" step="0.1" id="new-lab-tott" placeholder="e.g. 959" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Estradiol E2 (pg/mL)</label>
+            <input type="number" step="0.1" id="new-lab-e2" placeholder="e.g. 26.0" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Free T (Optional)</label>
+            <input type="number" step="0.1" id="new-lab-freet" placeholder="e.g. 10.0" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">PSA (ng/mL)</label>
+            <input type="number" step="0.001" id="new-lab-psa" placeholder="e.g. 1.120" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">Hematocrit % (Opt)</label>
+            <input type="number" step="0.1" id="new-lab-hct" placeholder="e.g. 47.2" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="text-brand-muted block mb-1">SHBG nmol/L (Opt)</label>
+            <input type="number" step="0.1" id="new-lab-shbg" placeholder="e.g. 47" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="text-brand-muted block text-xs mb-1">Protocol / Draw Notes</label>
+          <input type="text" id="new-lab-notes" placeholder="e.g. Trough (No AI) • 120mg/wk (60mg Thu/Sun)" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs">
+        </div>
+        <button onclick="addLabPanel()" class="w-full bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+          <span class="material-symbols-outlined text-base">save</span> Save Lab Panel to History
+        </button>
+      </div>
+
     </div>
 
     <!-- Tab 5: Settings, Site Manager & Google Drive -->
@@ -286,17 +371,17 @@
       <!-- Manage Custom Injection Sites -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <h3 class="font-bold text-white text-base flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand-cyan">accessibility_new</span> Custom Injection Sites
+          <span class="material-symbols-outlined text-brand-cyan">accessibility_new</span> Active Rotation Sites
         </h3>
         <p class="text-xs text-brand-muted">Remove unused sites or add your preferred injection locations.</p>
         <div id="settings-site-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
         <div class="flex gap-2 text-xs pt-1">
-          <input type="text" id="new-site-name" placeholder="Add site (e.g. Left Deltoid)" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-brand-cyan">
+          <input type="text" id="new-site-name" placeholder="Add site (e.g. Right Ventroglute)" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-brand-cyan">
           <button onclick="addSite()" class="bg-brand-cyan text-brand-dark px-4 rounded-xl font-bold hover:bg-sky-400 transition">Add</button>
         </div>
       </div>
 
-      <!-- Google Drive Cloud Sync & Backup -->
+      <!-- Google Drive Cloud Sync & Remote Backup -->
       <div id="drive-section" class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2.5">
@@ -391,16 +476,28 @@
       <!-- Protocol & Compound Settings -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <h3 class="font-bold text-white text-base flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand-cyan">medical_services</span> Protocol & Vial Settings
+          <span class="material-symbols-outlined text-brand-cyan">medical_services</span> Protocol & Syringe Settings
         </h3>
         <div class="space-y-3 text-xs">
-          <div>
-            <label class="text-brand-muted block mb-1">Target Dose per Week (mg)</label>
-            <input type="number" id="set-weekly-dose" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-brand-muted block mb-1">Weekly Dose (mg)</label>
+              <input type="number" id="set-weekly-dose" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+            </div>
+            <div>
+              <label class="text-brand-muted block mb-1">Pin Schedule</label>
+              <input type="text" id="set-schedule" placeholder="60mg Thu & Sun" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+            </div>
           </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Compound Name</label>
-            <input type="text" id="set-compound" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-brand-muted block mb-1">Compound Name</label>
+              <input type="text" id="set-compound" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+            </div>
+            <div>
+              <label class="text-brand-muted block mb-1">Needle / Syringe</label>
+              <input type="text" id="set-needle" placeholder='27g 1/2" Delt' class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
+            </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -413,44 +510,15 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- AccessLabs Values Editor -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
-        <h3 class="font-bold text-white text-base flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand-cyan">biotechnology</span> AccessLabs Values
-        </h3>
-        <div class="grid grid-cols-2 gap-3 text-xs">
-          <div>
-            <label class="text-brand-muted block mb-1">Total T (ng/dL)</label>
-            <input type="number" id="set-lab-tot-t" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Free T (pg/mL)</label>
-            <input type="number" step="0.1" id="set-lab-free-t" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Sensitive E2 (pg/mL)</label>
-            <input type="number" step="0.1" id="set-lab-e2" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-          </div>
-          <div>
-            <label class="text-brand-muted block mb-1">Hematocrit (%)</label>
-            <input type="number" step="0.1" id="set-lab-hct" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-brand-cyan">
-          </div>
-        </div>
-        <div>
-          <label class="text-brand-muted block text-xs mb-1">Lab Date Description</label>
-          <input type="text" id="set-lab-date" placeholder="e.g. October 2026" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan">
-        </div>
-      </div>
-
-      <!-- Save & Local Actions -->
-      <div class="space-y-2 pt-2">
         <button onclick="saveSettings()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
-          <span class="material-symbols-outlined text-lg">save</span> Save All Settings
+          <span class="material-symbols-outlined text-lg">save</span> Save Protocol Settings
         </button>
-        
-        <div class="grid grid-cols-2 gap-2 pt-2">
+      </div>
+
+      <!-- Save & Backup Actions -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-2">
+        <h3 class="font-bold text-white text-sm mb-2">Backup & Presets</h3>
+        <div class="grid grid-cols-2 gap-2">
           <button onclick="exportData()" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
             <span class="material-symbols-outlined text-sm text-brand-cyan">download</span> Export JSON
           </button>
@@ -460,8 +528,12 @@
           </label>
         </div>
 
+        <button onclick="syncDefaultSetup()" class="w-full bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-border font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mt-2">
+          <span class="material-symbols-outlined text-base">sync</span> Sync Default 120mg Delt Setup & 2026 Labs
+        </button>
+
         <button onclick="clearSampleData()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mt-2">
-          <span class="material-symbols-outlined text-base">delete_sweep</span> Clear All Doses & Start Fresh
+          <span class="material-symbols-outlined text-base">delete_sweep</span> Clear All Logged Doses
         </button>
       </div>
     </div>
@@ -492,7 +564,7 @@
     </button>
   </nav>
 
-  <!-- Custom Confirmation Dialog (Mandatory for Destructive Workspace Operations) -->
+  <!-- Custom Confirmation Dialog (Mandatory for destructive Google Drive / Data actions) -->
   <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-brand-card border border-brand-border rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
       <div class="flex items-center gap-3">
@@ -557,7 +629,7 @@
     </div>
   </div>
 
-  <!-- Main Application and Google Drive Integration Module -->
+  <!-- Main Application Script & Firebase/Google Drive Module -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
     import { 
@@ -568,32 +640,89 @@
       signOut 
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
-    // ----------------------------------------------------
-    // Configuration & State
-    // ----------------------------------------------------
+    // Defaulting directly to your Left & Right Deltoid rotation
     const DEFAULT_SITES = [
-      'Right Ventroglute', 'Left Ventroglute',
-      'Right Deltoid', 'Left Deltoid',
-      'Right Quad', 'Left Quad',
-      'Right Glute (Dorsal)', 'Left Glute (Dorsal)',
-      'SubQ Abdomen'
+      'Right Deltoid',
+      'Left Deltoid'
     ];
 
     const DEFAULT_CONFIG = {
-      weeklyDose: 140,
+      weeklyDose: 120,
+      schedule: '60mg Thu & Sun',
+      needle: '27g 1/2" Delt',
       compound: 'Testosterone Cypionate',
       concentration: 200,
-      vialVolume: 10.0,
-      labTotalT: 842,
-      labFreeT: 23.8,
-      labE2: 28.4,
-      labHct: 47.2,
-      labDate: 'Recent Lab Panel'
+      vialVolume: 10.0
     };
+
+    // Pre-loaded from your actual 2026 AccessLabs & Labcorp PDFs (All Trough, No AI)
+    const DEFAULT_LABS = [
+      {
+        date: '2026-09-03',
+        provider: "AccessLabs • GameDay Men's Health",
+        totalT: 959,
+        freeT: null,
+        freeTUnit: 'ng/dL',
+        e2: 26.0,
+        psa: 1.120,
+        hct: null,
+        shbg: null,
+        notes: 'Thu AM Trough (No AI) • 120mg/wk (60mg Thu/Sun • 27g 1/2" Delts)'
+      },
+      {
+        date: '2026-06-23',
+        provider: "AccessLabs • GameDay Men's Health",
+        totalT: 295,
+        freeT: null,
+        freeTUnit: 'ng/dL',
+        e2: 8.0,
+        psa: 0.916,
+        hct: null,
+        shbg: null,
+        notes: 'Trough (No AI) • Titrating dose upward toward ~1000 goal'
+      },
+      {
+        date: '2026-05-13',
+        provider: "AccessLabs • GameDay Men's Health",
+        totalT: 575,
+        freeT: 10.0,
+        freeTUnit: 'ng/dL (Ref 5.7–17.9)',
+        e2: 7.0,
+        psa: 0.949,
+        hct: null,
+        shbg: 47,
+        notes: 'Trough (No AI) • LH 6.9, FSH 6.2, Prolactin 17.6, TSH 1.78, eGFR 125'
+      },
+      {
+        date: '2026-04-11',
+        provider: 'Labcorp • CRS Urology (A. Coccia)',
+        totalT: 341.2,
+        freeT: 7.8,
+        freeTUnit: 'pg/mL (Ref 6.8–21.5)',
+        e2: 21.9,
+        psa: null,
+        hct: null,
+        shbg: null,
+        notes: 'Baseline Trough (LC/MS-MS) • LH 7.2, FSH 8.6, Prolactin 7.3'
+      },
+      {
+        date: '2026-03-19',
+        provider: 'Labcorp • Winslow Primary Care',
+        totalT: 344,
+        freeT: 6.2,
+        freeTUnit: 'pg/mL (Low < 6.8)',
+        e2: null,
+        psa: 0.900,
+        hct: 43.9,
+        shbg: null,
+        notes: 'Baseline Trough • Hgb 15.0, A1c 5.3%, B12 622, TSH 2.68, eGFR 113'
+      }
+    ];
 
     let calYear = new Date().getFullYear();
     let calMonth = new Date().getMonth();
     let selectedCalDateStr = new Date().toISOString().slice(0, 10);
+    let selectedLabIdx = 0;
     let editingDoseIdx = -1;
 
     // In-memory token management (per Workspace skill security requirements: NEVER store in localStorage)
@@ -601,6 +730,8 @@
     let currentUser = null;
     let auth = null;
     let isSigningIn = false;
+    const DRIVE_FOLDER_NAME = 'AndroLog TRT';
+    let cachedDriveFolderId = null;
 
     // Toast Notification Helper
     function showToast(msg, type = 'info') {
@@ -700,33 +831,70 @@
       input.value = '';
     }
 
-    function removeSite(siteName) {
+    function removeSiteIndex(idx) {
+      const sites = getSites();
+      const siteName = sites[idx];
+      if (!siteName) return;
+
       showConfirmDialog({
         title: 'Delete Injection Site',
         subtitle: siteName,
-        message: `Remove "${siteName}" from your rotation list? Historical doses logged to this site will remain in your history.`,
+        message: `Remove "${siteName}" from your rotation list? Historical doses logged to this site will remain preserved in your history.`,
         confirmText: 'Remove Site',
         isDanger: true,
         onConfirm: () => {
-          const sites = getSites().filter(s => s !== siteName);
+          sites.splice(idx, 1);
           saveSites(sites);
           showToast(`Removed "${siteName}"`, 'success');
         }
       });
     }
 
-    function removeSiteIndex(idx) {
-      const sites = getSites();
-      if (sites[idx]) removeSite(sites[idx]);
-    }
-
     function getConfig() {
       const stored = localStorage.getItem('androlog_config');
-      return stored ? JSON.parse(stored) : DEFAULT_CONFIG;
+      return stored ? { ...DEFAULT_CONFIG, ...JSON.parse(stored) } : DEFAULT_CONFIG;
     }
 
     function saveConfig(cfg) {
       localStorage.setItem('androlog_config', JSON.stringify(cfg));
+    }
+
+    function getLabs() {
+      const stored = localStorage.getItem('androlog_labs_v3');
+      if (!stored) {
+        localStorage.setItem('androlog_labs_v3', JSON.stringify(DEFAULT_LABS));
+        return DEFAULT_LABS;
+      }
+      return JSON.parse(stored);
+    }
+
+    function saveLabs(labs) {
+      labs.sort((a, b) => b.date.localeCompare(a.date));
+      localStorage.setItem('androlog_labs_v3', JSON.stringify(labs));
+    }
+
+    function syncDefaultSetup() {
+      showConfirmDialog({
+        title: 'Sync Protocol & 2026 Baseline Labs',
+        subtitle: '120mg/wk (60mg Thu/Sun) • 27g 1/2" Delts',
+        message: 'Sync protocol to 120mg/wk (60mg Thu & Sun • 27g 1/2" Delts) and reload your 5 baseline 2026 trough panels from AccessLabs & Labcorp? Your logged injection history will not be deleted.',
+        confirmText: 'Sync Defaults',
+        isDanger: false,
+        onConfirm: () => {
+          const currentCfg = getConfig();
+          saveConfig({
+            ...DEFAULT_CONFIG,
+            vialVolume: currentCfg.vialVolume || 10.0
+          });
+          localStorage.setItem('androlog_sites', JSON.stringify(DEFAULT_SITES));
+          saveLabs([...DEFAULT_LABS]);
+          document.getElementById('input-dose').value = 60;
+          selectedLabIdx = 0;
+          updateUI();
+          showToast('Default 120mg Delt setup & 2026 labs synced!', 'success');
+          switchTab('dashboard');
+        }
+      });
     }
 
     function getHistory() {
@@ -743,10 +911,21 @@
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       document.getElementById('input-date').value = now.toISOString().slice(0, 16);
+      document.getElementById('new-lab-date').value = now.toISOString().slice(0, 10);
+    }
+
+    function updateSyringeHelper() {
+      const cfg = getConfig();
+      const doseMg = parseFloat(document.getElementById('input-dose').value) || 0;
+      const ml = doseMg / (cfg.concentration || 200);
+      const units = Math.round(ml * 100);
+      const needleLabel = cfg.needle || '27g 1/2" Delt';
+      document.getElementById('syringe-needle-label').innerText = `${needleLabel} Draw Volume:`;
+      document.getElementById('syringe-draw-helper').innerText = `${ml.toFixed(2)} mL (${units} Units on U-100)`;
     }
 
     function formatDateText(dateObj) {
-      return dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+      return dateObj.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' ' +
              dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
@@ -758,7 +937,7 @@
       const history = getHistory();
       const sites = getSites();
 
-      // Populate Site Dropdowns
+      // Populate Site Dropdown
       const siteSelect = document.getElementById('input-site');
       const prevSite = siteSelect.value;
       siteSelect.innerHTML = '';
@@ -771,11 +950,11 @@
         siteSelect.value = sites[0];
       }
 
-      // Populate Custom Site Manager List in Settings
+      // Populate Custom Site Manager List
       const siteManageEl = document.getElementById('settings-site-list');
       siteManageEl.innerHTML = '';
       if (sites.length === 0) {
-        siteManageEl.innerHTML = '<p class="text-xs text-brand-muted py-2">No sites defined. Add your first site below.</p>';
+        siteManageEl.innerHTML = '<p class="text-xs text-brand-muted py-2">No active sites configured. Add a site below.</p>';
       } else {
         sites.forEach((s, idx) => {
           const row = document.createElement('div');
@@ -789,15 +968,19 @@
         });
       }
 
-      // Update Dashboard Protocol Banner
+      // Update Dashboard Protocol
       document.getElementById('dash-weekly-dose').innerText = `${cfg.weeklyDose} mg / week`;
       document.getElementById('dash-compound').innerText = `${cfg.compound} (${cfg.concentration} mg/mL)`;
+      document.getElementById('dash-schedule-badge').innerText = cfg.schedule || '60mg Thu & Sun';
+      document.getElementById('dash-needle-badge').innerText = cfg.needle || '27g 1/2" Delt';
       document.getElementById('dash-vial-vol').innerText = `${parseFloat(cfg.vialVolume).toFixed(2)} mL`;
 
-      const avgPinMg = (cfg.weeklyDose / 2) || 50;
+      const avgPinMg = (cfg.weeklyDose / 2) || 60;
       const mlPerPin = avgPinMg / cfg.concentration;
       const remainingDoses = mlPerPin > 0 ? Math.floor(cfg.vialVolume / mlPerPin) : 0;
-      document.getElementById('dash-vial-doses').innerText = `~${remainingDoses} doses left`;
+      document.getElementById('dash-vial-doses').innerText = `~${remainingDoses} doses left (${(mlPerPin).toFixed(2)} mL/pin)`;
+
+      updateSyringeHelper();
 
       // Update Last Pin
       if (history.length > 0) {
@@ -839,35 +1022,212 @@
         });
       }
 
-      // Update Labs Display
-      document.getElementById('disp-lab-tot-t').innerHTML = `${cfg.labTotalT} <span class="text-xs font-normal text-brand-muted">ng/dL</span>`;
-      document.getElementById('disp-lab-free-t').innerHTML = `${cfg.labFreeT} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
-      document.getElementById('disp-lab-e2').innerHTML = `${cfg.labE2} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`;
-      document.getElementById('disp-lab-hct').innerHTML = `${cfg.labHct} <span class="text-xs font-normal text-brand-muted">%</span>`;
-      const hctStatus = document.getElementById('disp-lab-hct-status');
-      if (parseFloat(cfg.labHct) >= 52.0) {
-        hctStatus.className = 'text-[11px] text-red-400 font-medium';
-        hctStatus.innerText = 'Elevated (≥ 52.0%)';
-      } else {
-        hctStatus.className = 'text-[11px] text-emerald-400 font-medium';
-        hctStatus.innerText = 'Safe (< 52.0%)';
-      }
-      document.getElementById('disp-lab-date').innerText = cfg.labDate || 'Recent';
-
       // Update Settings Inputs
       document.getElementById('set-weekly-dose').value = cfg.weeklyDose;
+      document.getElementById('set-schedule').value = cfg.schedule || '60mg Thu & Sun';
       document.getElementById('set-compound').value = cfg.compound;
+      document.getElementById('set-needle').value = cfg.needle || '27g 1/2" Delt';
       document.getElementById('set-concentration').value = cfg.concentration;
       document.getElementById('set-vial-vol').value = cfg.vialVolume;
-      document.getElementById('set-lab-tot-t').value = cfg.labTotalT;
-      document.getElementById('set-lab-free-t').value = cfg.labFreeT;
-      document.getElementById('set-lab-e2').value = cfg.labE2;
-      document.getElementById('set-lab-hct').value = cfg.labHct;
-      document.getElementById('set-lab-date').value = cfg.labDate;
 
       updateSiteRotation(history, sites);
       renderCalendar();
+      renderLabsView();
       updateDriveUIState();
+    }
+
+    function renderLabsView() {
+      const labs = getLabs();
+      document.getElementById('lab-count-badge').innerText = `${labs.length} Trough Draws`;
+
+      const pillsEl = document.getElementById('lab-date-pills');
+      pillsEl.innerHTML = '';
+      if (selectedLabIdx >= labs.length) selectedLabIdx = 0;
+
+      labs.forEach((item, idx) => {
+        const active = idx === selectedLabIdx;
+        const btn = document.createElement('button');
+        btn.onclick = () => { selectedLabIdx = idx; renderLabsView(); };
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition ${
+          active
+            ? 'bg-brand-cyan text-brand-dark border-brand-cyan shadow-md shadow-sky-500/20'
+            : 'bg-brand-surface text-brand-muted border-brand-border hover:text-white'
+        }`;
+        btn.innerText = item.date;
+        pillsEl.appendChild(btn);
+      });
+
+      const current = labs[selectedLabIdx];
+      if (current) {
+        document.getElementById('disp-lab-provider').innerText = current.provider || 'AccessLabs';
+        document.getElementById('disp-lab-date').innerText = `${current.date} (Trough)`;
+
+        // Total T
+        document.getElementById('disp-lab-tot-t').innerHTML = current.totalT
+          ? `${current.totalT} <span class="text-xs font-normal text-brand-muted">ng/dL</span>`
+          : '—';
+        const totStatus = document.getElementById('disp-lab-tot-t-status');
+        if (current.totalT && current.totalT >= 850) {
+          totStatus.className = 'text-[11px] text-emerald-400 font-medium';
+          totStatus.innerText = 'On Target (~1000 Goal)';
+        } else if (current.totalT && current.totalT < 400) {
+          totStatus.className = 'text-[11px] text-amber-400 font-medium';
+          totStatus.innerText = 'Low Trough (<400)';
+        } else {
+          totStatus.className = 'text-[11px] text-brand-cyan font-medium';
+          totStatus.innerText = 'Titrating Upward';
+        }
+
+        // E2
+        document.getElementById('disp-lab-e2').innerHTML = current.e2 !== null && current.e2 !== undefined
+          ? `${current.e2} <span class="text-xs font-normal text-brand-muted">pg/mL</span>`
+          : '—';
+        const e2Status = document.getElementById('disp-lab-e2-status');
+        if (current.e2 !== null && current.e2 < 11.3) {
+          e2Status.className = 'text-[11px] text-amber-400 font-medium';
+          e2Status.innerText = 'Low Trough (< 11.3 pg/mL)';
+        } else if (current.e2 !== null && current.e2 > 43.2) {
+          e2Status.className = 'text-[11px] text-amber-400 font-medium';
+          e2Status.innerText = 'Above Ref (> 43.2)';
+        } else {
+          e2Status.className = 'text-[11px] text-emerald-400 font-medium';
+          e2Status.innerText = 'Sweet Spot (11.3–43.2)';
+        }
+
+        // Free T
+        document.getElementById('disp-lab-free-t').innerHTML = current.freeT !== null && current.freeT !== undefined
+          ? `${current.freeT}`
+          : '—';
+        document.getElementById('disp-lab-free-t-unit').innerText = current.freeTUnit || 'Direct Free T';
+
+        // PSA
+        document.getElementById('disp-lab-psa').innerHTML = current.psa !== null && current.psa !== undefined
+          ? `${Number(current.psa).toFixed(3)} <span class="text-xs font-normal text-brand-muted">ng/mL</span>`
+          : '—';
+
+        // T:E2 Ratio
+        if (current.totalT && current.e2) {
+          const ratio = (current.totalT / current.e2).toFixed(1);
+          document.getElementById('disp-lab-ratio').innerText = `${ratio} : 1`;
+        } else {
+          document.getElementById('disp-lab-ratio').innerText = '—';
+        }
+
+        // Extra (HCT / SHBG / Notes)
+        const hctTxt = current.hct ? `${current.hct}%` : '—';
+        const shbgTxt = current.shbg ? `${current.shbg}` : '—';
+        document.getElementById('disp-lab-extra').innerText = `HCT: ${hctTxt} | SHBG: ${shbgTxt}`;
+        document.getElementById('disp-lab-notes').innerText = current.notes || 'Trough Panel';
+      }
+
+      renderLabChart(labs);
+    }
+
+    function renderLabChart(labs) {
+      const container = document.getElementById('lab-chart-container');
+      const chronological = [...labs].reverse();
+      if (chronological.length < 2) {
+        container.innerHTML = `<p class="text-xs text-brand-muted text-center pt-10">Add at least 2 panels to view trendline.</p>`;
+        return;
+      }
+
+      const w = 320, h = 120, padX = 28, padY = 18;
+      const maxT = 1100;
+      const stepX = (w - padX * 2) / (chronological.length - 1);
+      const yGoal = h - padY - (1000 / maxT) * (h - padY * 2);
+
+      let tPoints = [];
+      let e2Points = [];
+      let labels = '';
+      let dots = '';
+
+      chronological.forEach((p, i) => {
+        const x = padX + i * stepX;
+        const yT = h - padY - ((p.totalT || 0) / maxT) * (h - padY * 2);
+        tPoints.push(`${x},${yT}`);
+
+        dots += `<circle cx="${x}" cy="${yT}" r="3.5" fill="#0ea5e9" />`;
+        dots += `<text x="${x}" y="${yT - 7}" fill="#e2ecf7" font-size="9" font-weight="bold" text-anchor="middle">${Math.round(p.totalT)}</text>`;
+
+        if (p.e2) {
+          const yE2 = h - padY - ((p.e2 * 15) / maxT) * (h - padY * 2);
+          e2Points.push(`${x},${yE2}`);
+          dots += `<circle cx="${x}" cy="${yE2}" r="3" fill="#34d399" />`;
+        }
+
+        const shortDate = p.date.slice(5);
+        labels += `<text x="${x}" y="${h - 2}" fill="#7e9cb8" font-size="9" text-anchor="middle">${shortDate}</text>`;
+      });
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
+          <line x1="${padX}" y1="${yGoal}" x2="${w - padX}" y2="${yGoal}" stroke="#1f344d" stroke-width="1" stroke-dasharray="4,4" />
+          <text x="${w - padX}" y="${yGoal - 3}" fill="#7e9cb8" font-size="8" text-anchor="end">1000 Goal</text>
+          <polyline fill="none" stroke="#0ea5e9" stroke-width="2.5" points="${tPoints.join(' ')}" />
+          ${e2Points.length > 1 ? `<polyline fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="3,3" points="${e2Points.join(' ')}" />` : ''}
+          ${dots}
+          ${labels}
+        </svg>
+      `;
+    }
+
+    function addLabPanel() {
+      const date = document.getElementById('new-lab-date').value;
+      const provider = document.getElementById('new-lab-provider').value.trim() || 'AccessLabs';
+      const totalT = parseFloat(document.getElementById('new-lab-tott').value);
+      if (!date || isNaN(totalT)) {
+        showToast('Please enter Draw Date and Total Testosterone.', 'error');
+        return;
+      }
+
+      const e2Val = parseFloat(document.getElementById('new-lab-e2').value);
+      const freeVal = parseFloat(document.getElementById('new-lab-freet').value);
+      const psaVal = parseFloat(document.getElementById('new-lab-psa').value);
+      const hctVal = parseFloat(document.getElementById('new-lab-hct').value);
+      const shbgVal = parseFloat(document.getElementById('new-lab-shbg').value);
+      const notes = document.getElementById('new-lab-notes').value.trim();
+
+      const labs = getLabs();
+      labs.push({
+        date,
+        provider,
+        totalT,
+        e2: isNaN(e2Val) ? null : e2Val,
+        freeT: isNaN(freeVal) ? null : freeVal,
+        freeTUnit: 'ng/dL',
+        psa: isNaN(psaVal) ? null : psaVal,
+        hct: isNaN(hctVal) ? null : hctVal,
+        shbg: isNaN(shbgVal) ? null : shbgVal,
+        notes: notes || 'Trough Panel (No AI)'
+      });
+
+      saveLabs(labs);
+      selectedLabIdx = 0;
+      updateUI();
+      showToast('Lab panel saved to history!', 'success');
+    }
+
+    function deleteSelectedLabPanel() {
+      const labs = getLabs();
+      if (labs.length <= 1) {
+        showToast('Cannot delete the last remaining lab panel.', 'info');
+        return;
+      }
+      const target = labs[selectedLabIdx];
+      showConfirmDialog({
+        title: 'Delete Lab Panel',
+        subtitle: `${target.date} • ${target.provider}`,
+        message: `Delete lab panel from ${target.date}? This will remove it from your trajectory trendline and history.`,
+        confirmText: 'Delete Panel',
+        isDanger: true,
+        onConfirm: () => {
+          labs.splice(selectedLabIdx, 1);
+          selectedLabIdx = 0;
+          saveLabs(labs);
+          updateUI();
+          showToast('Lab panel deleted.', 'success');
+        }
+      });
     }
 
     function updateSiteRotation(history, sites) {
@@ -880,9 +1240,7 @@
 
       const lastUsed = {};
       history.forEach((h, index) => {
-        if (!lastUsed[h.site]) {
-          lastUsed[h.site] = index + 1;
-        }
+        if (!lastUsed[h.site]) lastUsed[h.site] = index + 1;
       });
 
       const sortedSites = [...sites].sort((a, b) => {
@@ -899,23 +1257,23 @@
         }
       }
 
-      sortedSites.forEach(site => {
+      sortedSites.forEach((site, i) => {
         const rank = lastUsed[site];
-        let badge = '<span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Optimal / Rested</span>';
+        let badge = '<span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Up Next • Rested</span>';
         let borderColor = 'border-emerald-500/30';
         let dotColor = 'bg-emerald-400';
-        let subtext = 'Ready for injection';
+        let subtext = 'Ready for 27g 1/2" pin';
 
         if (rank === 1) {
-          badge = '<span class="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">Most Recent</span>';
+          badge = '<span class="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">Last Pinned</span>';
           borderColor = 'border-amber-500/30';
           dotColor = 'bg-amber-400';
-          subtext = 'Cooling down';
-        } else if (rank === 2) {
+          subtext = 'Resting until next cycle';
+        } else if (i > 0 && rank !== undefined) {
           badge = '<span class="text-xs font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded">Rested</span>';
           borderColor = 'border-sky-500/30';
           dotColor = 'bg-sky-400';
-          subtext = '2nd to last pin';
+          subtext = 'Available in rotation';
         }
 
         const div = document.createElement('div');
@@ -934,9 +1292,6 @@
       });
     }
 
-    // ----------------------------------------------------
-    // Calendar Logic
-    // ----------------------------------------------------
     function changeMonth(delta) {
       calMonth += delta;
       if (calMonth < 0) { calMonth = 11; calYear--; }
@@ -946,10 +1301,7 @@
 
     function toLocalYMD(timestamp) {
       const d = new Date(timestamp);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
     function renderCalendar() {
@@ -970,11 +1322,12 @@
       const grid = document.getElementById('calendar-grid');
       grid.innerHTML = '';
 
-      for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div></div>`;
-      }
+      for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
 
       for (let day = 1; day <= daysInMonth; day++) {
+        const dateObj = new Date(calYear, calMonth, day);
+        const dow = dateObj.getDay(); // 0 = Sun, 4 = Thu
+        const isTargetPinDay = (dow === 0 || dow === 4);
         const ymd = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const hasPins = pinMap[ymd] && pinMap[ymd].length > 0;
         const isSelected = ymd === selectedCalDateStr;
@@ -982,12 +1335,16 @@
         const baseStyle = isSelected
           ? 'bg-brand-cyan text-brand-dark font-bold border-brand-cyan'
           : hasPins
-            ? 'bg-brand-surface text-white font-bold border-brand-cyan/60'
-            : 'bg-brand-surface/50 text-brand-muted border-brand-border/40';
+            ? 'bg-brand-surface text-white font-bold border-brand-cyan/70'
+            : isTargetPinDay
+              ? 'bg-brand-surface/90 text-slate-200 border-brand-cyan/25'
+              : 'bg-brand-surface/40 text-brand-muted border-brand-border/30';
 
         const dot = hasPins
           ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : 'bg-brand-cyan'} mx-auto mt-0.5 block"></span>`
-          : `<span class="w-1.5 h-1.5 mx-auto mt-0.5 block"></span>`;
+          : isTargetPinDay
+            ? `<span class="w-1 h-1 rounded-full bg-brand-muted/40 mx-auto mt-0.5 block"></span>`
+            : `<span class="w-1.5 h-1.5 mx-auto mt-0.5 block"></span>`;
 
         grid.innerHTML += `
           <button onclick="selectCalendarDate('${ymd}')" class="py-2 rounded-xl border ${baseStyle} flex flex-col items-center justify-center transition">
@@ -1035,7 +1392,7 @@
     }
 
     function jumpToLogForSelectedDate() {
-      document.getElementById('input-date').value = `${selectedCalDateStr}T09:00`;
+      document.getElementById('input-date').value = `${selectedCalDateStr}T08:00`;
       switchTab('dashboard');
       document.getElementById('log-dose-card').scrollIntoView({ behavior: 'smooth' });
     }
@@ -1062,7 +1419,7 @@
       const dateText = formatDateText(dateObj);
 
       const cfg = getConfig();
-      const mlInjected = doseMg / cfg.concentration;
+      const mlInjected = doseMg / (cfg.concentration || 200);
       cfg.vialVolume = Math.max(0, cfg.vialVolume - mlInjected);
       saveConfig(cfg);
 
@@ -1123,8 +1480,8 @@
       }
 
       const cfg = getConfig();
-      const oldMl = entry.dose / cfg.concentration;
-      const newMl = newDose / cfg.concentration;
+      const oldMl = entry.dose / (cfg.concentration || 200);
+      const newMl = newDose / (cfg.concentration || 200);
       cfg.vialVolume = Math.max(0, cfg.vialVolume + oldMl - newMl);
       saveConfig(cfg);
 
@@ -1145,12 +1502,12 @@
       showConfirmDialog({
         title: 'Delete Injection Entry',
         subtitle: `${item.dateText} — ${item.site} (${item.dose}mg)`,
-        message: 'Delete this dose entry? The volume injected will be refunded back to your remaining vial volume calculation.',
+        message: 'Delete this dose entry? The volume injected will be refunded back to your remaining vial balance calculation.',
         confirmText: 'Delete Pin',
         isDanger: true,
         onConfirm: () => {
           const cfg = getConfig();
-          const refundMl = item.dose / cfg.concentration;
+          const refundMl = item.dose / (cfg.concentration || 200);
           cfg.vialVolume += refundMl;
           saveConfig(cfg);
 
@@ -1164,19 +1521,17 @@
 
     function saveSettings() {
       const cfg = {
-        weeklyDose: parseFloat(document.getElementById('set-weekly-dose').value) || 140,
-        compound: document.getElementById('set-compound').value || 'Testosterone Cypionate',
+        weeklyDose: parseFloat(document.getElementById('set-weekly-dose').value) || 120,
+        schedule: document.getElementById('set-schedule').value.trim() || '60mg Thu & Sun',
+        compound: document.getElementById('set-compound').value.trim() || 'Testosterone Cypionate',
+        needle: document.getElementById('set-needle').value.trim() || '27g 1/2" Delt',
         concentration: parseFloat(document.getElementById('set-concentration').value) || 200,
-        vialVolume: parseFloat(document.getElementById('set-vial-vol').value) || 10.0,
-        labTotalT: parseFloat(document.getElementById('set-lab-tot-t').value) || 0,
-        labFreeT: parseFloat(document.getElementById('set-lab-free-t').value) || 0,
-        labE2: parseFloat(document.getElementById('set-lab-e2').value) || 0,
-        labHct: parseFloat(document.getElementById('set-lab-hct').value) || 0,
-        labDate: document.getElementById('set-lab-date').value || 'Updated'
+        vialVolume: parseFloat(document.getElementById('set-vial-vol').value) || 10.0
       };
       saveConfig(cfg);
+      document.getElementById('input-dose').value = Math.round(cfg.weeklyDose / 2);
       updateUI();
-      showToast('Settings saved successfully!', 'success');
+      showToast('Protocol settings saved!', 'success');
       switchTab('dashboard');
     }
 
@@ -1192,7 +1547,7 @@
         const d = new Date(item.timestamp);
         const dateStr = d.toLocaleDateString('en-US');
         const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        const volMl = (item.dose / cfg.concentration).toFixed(3);
+        const volMl = (item.dose / (cfg.concentration || 200)).toFixed(3);
         const safeSite = `"${(item.site || '').replace(/"/g, '""')}"`;
         const safeCompound = `"${(cfg.compound || 'Testosterone Cypionate').replace(/"/g, '""')}"`;
         return [dateStr, timeStr, safeSite, item.dose, volMl, safeCompound, cfg.concentration, cfg.vialVolume.toFixed(2)].join(',');
@@ -1227,7 +1582,8 @@
         exportedAt: new Date().toISOString(),
         config: getConfig(),
         sites: getSites(),
-        doses: getHistory()
+        doses: getHistory(),
+        labs: getLabs()
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -1248,13 +1604,14 @@
           showConfirmDialog({
             title: 'Restore JSON Backup',
             subtitle: file.name,
-            message: 'Restoring this backup file will overwrite your current settings, doses, and sites with the file contents. Proceed?',
+            message: 'Restoring this backup file will overwrite your current settings, doses, sites, and lab panels with the file contents. Proceed?',
             confirmText: 'Restore Now',
             isDanger: true,
             onConfirm: () => {
               if (data.config) saveConfig(data.config);
               if (data.sites) localStorage.setItem('androlog_sites', JSON.stringify(data.sites));
               if (data.doses) saveHistory(data.doses);
+              if (data.labs) saveLabs(data.labs);
               updateUI();
               showToast('Backup restored successfully!', 'success');
             }
@@ -1270,8 +1627,8 @@
     function clearSampleData() {
       showConfirmDialog({
         title: 'Clear All Dose History',
-        subtitle: 'Start completely fresh',
-        message: 'Are you sure you want to delete all recorded injections? Your custom protocol and sites will be kept, but all pin history will be permanently cleared.',
+        subtitle: 'Start fresh with your protocol',
+        message: 'Are you sure you want to delete all recorded injections? Your custom protocol, deltoid sites, and baseline lab panels will remain saved.',
         confirmText: 'Clear Doses',
         isDanger: true,
         onConfirm: () => {
@@ -1305,10 +1662,6 @@
     // ----------------------------------------------------
     // Google Drive Integration & Firebase Auth
     // ----------------------------------------------------
-    const DRIVE_FOLDER_NAME = 'AndroLog TRT';
-    let cachedDriveFolderId = null;
-
-    // Load Firebase Config & Initialize Auth
     async function initFirebase() {
       try {
         let firebaseConfig = null;
@@ -1318,7 +1671,7 @@
             firebaseConfig = await res.json();
           }
         } catch (e) {
-          console.warn('Could not load firebase-applet-config.json via fetch, using default');
+          console.warn('Could not load firebase-applet-config.json via fetch');
         }
 
         if (!firebaseConfig) {
@@ -1590,7 +1943,8 @@
           exportedAt: new Date().toISOString(),
           config: getConfig(),
           sites: getSites(),
-          doses: getHistory()
+          doses: getHistory(),
+          labs: getLabs()
         };
         const jsonStr = JSON.stringify(payload, null, 2);
         const dateStr = new Date().toISOString().slice(0, 10);
@@ -1621,7 +1975,8 @@
           exportedAt: new Date().toISOString(),
           config: getConfig(),
           sites: getSites(),
-          doses: getHistory()
+          doses: getHistory(),
+          labs: getLabs()
         };
         const dateStr = new Date().toISOString().slice(0, 10);
         const timeStr = new Date().toTimeString().slice(0, 5).replace(':', '');
@@ -1767,7 +2122,7 @@
       showConfirmDialog({
         title: 'Restore from Google Drive',
         subtitle: fileName,
-        message: `Restoring this backup will replace your current doses, injection sites, and protocol settings with the data in "${fileName}". Are you sure you want to proceed?`,
+        message: `Restoring this backup will replace your current doses, injection sites, protocol settings, and lab panels with the data in "${fileName}". Are you sure you want to proceed?`,
         confirmText: 'Restore Backup',
         isDanger: true,
         onConfirm: async () => {
@@ -1778,6 +2133,7 @@
             if (data.config) saveConfig(data.config);
             if (data.sites) localStorage.setItem('androlog_sites', JSON.stringify(data.sites));
             if (data.doses) saveHistory(data.doses);
+            if (data.labs) saveLabs(data.labs);
             updateUI();
             showToast('Backup restored successfully from Google Drive!', 'success');
           } catch (err) {
@@ -1814,6 +2170,7 @@
     // ----------------------------------------------------
     window.switchTab = switchTab;
     window.resetToNow = resetToNow;
+    window.updateSyringeHelper = updateSyringeHelper;
     window.logDose = logDose;
     window.editDose = editDose;
     window.closeEditDoseModal = closeEditDoseModal;
@@ -1829,6 +2186,9 @@
     window.changeMonth = changeMonth;
     window.selectCalendarDate = selectCalendarDate;
     window.jumpToLogForSelectedDate = jumpToLogForSelectedDate;
+    window.addLabPanel = addLabPanel;
+    window.deleteSelectedLabPanel = deleteSelectedLabPanel;
+    window.syncDefaultSetup = syncDefaultSetup;
     window.handleGoogleSignIn = handleGoogleSignIn;
     window.handleGoogleSignOut = handleGoogleSignOut;
     window.backupToGoogleDrive = backupToGoogleDrive;
