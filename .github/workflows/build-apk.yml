@@ -39,10 +39,48 @@ jobs:
           {
             "appId": "com.coyle.androlog",
             "appName": "AndroLog",
-            "webDir": "www"
+            "webDir": "www",
+            "server": {
+              "androidScheme": "https",
+              "hostname": "localhost"
+            }
           }
           EOF
           npx cap add android
+
+          # Patch MainActivity.java to support Google OAuth popups and strip '; wv' from User-Agent
+          cat << 'EOF' > android/app/src/main/java/com/coyle/androlog/MainActivity.java
+          package com.coyle.androlog;
+
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  try {
+                      if (this.bridge != null) {
+                          WebView webView = this.bridge.getWebView();
+                          if (webView != null) {
+                              WebSettings settings = webView.getSettings();
+                              settings.setJavaScriptEnabled(true);
+                              settings.setSupportMultipleWindows(true);
+                              settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                              settings.setDomStorageEnabled(true);
+                              String ua = settings.getUserAgentString();
+                              if (ua != null && ua.contains("; wv")) {
+                                  settings.setUserAgentString(ua.replace("; wv", ""));
+                              }
+                          }
+                      }
+                  } catch (Exception ignored) {}
+              }
+          }
+          EOF
+
           npx cap sync android
 
       - name: Compile Debug APK

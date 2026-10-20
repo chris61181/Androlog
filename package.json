@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node server.js",
     "build": "echo \"No build required\"",
-    "start": "node server.js"
+    "start": "node server.js",
+    "lint": "node -c server.js"
   },
   "dependencies": {
     "express": "^4.21.1"

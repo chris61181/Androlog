@@ -738,6 +738,34 @@
     </div>
   </div>
 
+  <!-- Auth Diagnostic & Help Modal -->
+  <div id="auth-help-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-brand-card border border-brand-border rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+            <span class="material-symbols-outlined text-xl" id="auth-help-icon">vpn_key_alert</span>
+          </div>
+          <div>
+            <h4 class="font-bold text-white text-sm" id="auth-help-title">Google Sign-In Notice</h4>
+            <p class="text-[11px] text-brand-muted" id="auth-help-subtitle">Connection Diagnostic</p>
+          </div>
+        </div>
+        <button onclick="closeAuthHelpModal()" class="text-brand-muted hover:text-white p-1">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      <div id="auth-help-body" class="space-y-3 text-xs text-brand-muted leading-relaxed">
+        <!-- Injected via JavaScript based on error type -->
+      </div>
+      <div class="flex items-center gap-2 pt-1" id="auth-help-actions">
+        <button onclick="closeAuthHelpModal()" class="flex-1 bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-white font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast" class="fixed bottom-20 left-4 right-4 max-w-md mx-auto z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
     <div class="bg-brand-surface/95 border border-brand-cyan/40 backdrop-blur-md px-4 py-3 rounded-xl shadow-xl flex items-center gap-3">
@@ -752,6 +780,8 @@
     import { 
       getAuth, 
       signInWithPopup, 
+      signInWithRedirect, 
+      getRedirectResult, 
       GoogleAuthProvider, 
       onAuthStateChanged, 
       signOut 
@@ -1862,25 +1892,55 @@
     // ----------------------------------------------------
     // Google Workspace Integration (Calendar & Drive) & Firebase Auth
     // ----------------------------------------------------
+    const FALLBACK_FIREBASE_CONFIG = {
+      projectId: "trt-tracker-1b1a6",
+      appId: "1:370638843736:web:f223e29630793da767ff2d",
+      apiKey: "AIzaSyCneSaxZRiyCUTNfbcBYW23pTS6SCjUw00",
+      authDomain: "trt-tracker-1b1a6.firebaseapp.com",
+      firestoreDatabaseId: "ai-studio-androlog-addf40b1-b0b3-4aa8-98dc-180b85683c67",
+      storageBucket: "trt-tracker-1b1a6.firebasestorage.app",
+      messagingSenderId: "370638843736",
+      oAuthClientId: "370638843736-nckl61jhtup39po4g03ud98c46uqe0n6.apps.googleusercontent.com"
+    };
+
     async function initFirebase() {
       try {
-        let firebaseConfig = null;
+        let firebaseConfig = FALLBACK_FIREBASE_CONFIG;
         try {
           const res = await fetch('./firebase-applet-config.json');
           if (res.ok) {
-            firebaseConfig = await res.json();
+            const fetched = await res.json();
+            if (fetched && fetched.projectId) {
+              firebaseConfig = fetched;
+            }
           }
         } catch (e) {
-          console.warn('Could not load firebase-applet-config.json via fetch');
-        }
-
-        if (!firebaseConfig) {
-          console.error('No Firebase config available');
-          return;
+          console.log('Using embedded Firebase credentials.');
         }
 
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
+
+        // Check if returning from redirect sign-in flow
+        try {
+          const redirectResult = await getRedirectResult(auth);
+          if (redirectResult && redirectResult.user) {
+            const credential = GoogleAuthProvider.credentialFromResult(redirectResult);
+            if (credential?.accessToken) {
+              cachedAccessToken = credential.accessToken;
+              currentUser = redirectResult.user;
+              updateGoogleUIState();
+              showToast(`Connected to Google as ${currentUser.email}!`, 'success');
+              loadDriveBackupsList();
+              fetchGoogleCalendarEvents();
+            }
+          }
+        } catch (redirectErr) {
+          console.warn('Redirect sign-in resolution:', redirectErr);
+          if (redirectErr.code && redirectErr.code !== 'auth/null-user') {
+            handleAuthError(redirectErr);
+          }
+        }
 
         // Listen for authentication changes
         onAuthStateChanged(auth, async (user) => {
@@ -1999,38 +2059,183 @@
       try {
         isSigningIn = true;
         const provider = new GoogleAuthProvider();
-        // Google Drive scopes
-        provider.addScope('https://www.googleapis.com/auth/drive');
-        provider.addScope('https://www.googleapis.com/auth/drive.file');
-        provider.addScope('https://www.googleapis.com/auth/drive.appdata');
-        provider.addScope('https://www.googleapis.com/auth/drive.readonly');
-        provider.addScope('https://www.googleapis.com/auth/drive.metadata');
-
-        // Google Calendar scopes
+        // Google Calendar & Drive scopes
         provider.addScope('https://www.googleapis.com/auth/calendar');
-        provider.addScope('https://www.googleapis.com/auth/calendar.events');
-        provider.addScope('https://www.googleapis.com/auth/calendar.calendarlist');
+        provider.addScope('https://www.googleapis.com/auth/drive.file');
 
-        provider.setCustomParameters({ prompt: 'consent' });
+        provider.setCustomParameters({ prompt: 'select_account' });
 
-        const result = await signInWithPopup(auth, provider);
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        if (!credential?.accessToken) {
-          throw new Error('Could not obtain Google Workspace OAuth access token.');
+        const isNative = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform ? window.Capacitor.isNativePlatform() : false;
+
+        try {
+          const result = await signInWithPopup(auth, provider);
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          if (!credential?.accessToken) {
+            throw new Error('Could not obtain Google Workspace OAuth access token.');
+          }
+
+          cachedAccessToken = credential.accessToken;
+          currentUser = result.user;
+          updateGoogleUIState();
+          showToast(`Connected to Google as ${currentUser.email}!`, 'success');
+          await loadDriveBackupsList();
+          await fetchGoogleCalendarEvents();
+        } catch (popupErr) {
+          console.warn('Popup login attempt:', popupErr);
+          if (
+            popupErr.code === 'auth/popup-blocked' ||
+            popupErr.code === 'auth/operation-not-supported-in-this-environment' ||
+            isNative
+          ) {
+            showToast('Popup blocked or mobile webview. Switching to direct redirect...', 'info');
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+          throw popupErr;
         }
-
-        cachedAccessToken = credential.accessToken;
-        currentUser = result.user;
-        updateGoogleUIState();
-        showToast(`Connected to Google as ${currentUser.email}!`, 'success');
-        await loadDriveBackupsList();
-        await fetchGoogleCalendarEvents();
       } catch (err) {
         console.error('Google Sign-in error:', err);
-        showToast(err.message || 'Failed to sign in with Google.', 'error');
+        handleAuthError(err);
       } finally {
         isSigningIn = false;
       }
+    }
+
+    async function signInWithRedirectFlow() {
+      closeAuthHelpModal();
+      if (!auth) return;
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.addScope('https://www.googleapis.com/auth/calendar');
+        provider.addScope('https://www.googleapis.com/auth/drive.file');
+        provider.setCustomParameters({ prompt: 'select_account' });
+        showToast('Redirecting to Google Sign-In...', 'info');
+        await signInWithRedirect(auth, provider);
+      } catch (err) {
+        handleAuthError(err);
+      }
+    }
+
+    function handleAuthError(err) {
+      if (!err) return;
+      const code = err.code || '';
+      const msg = err.message || '';
+
+      if (code === 'auth/popup-closed-by-user') {
+        showToast('Sign-in cancelled.', 'info');
+        return;
+      }
+      if (code === 'auth/cancelled-popup-request') {
+        return;
+      }
+      if (code === 'auth/unauthorized-domain') {
+        showAuthDomainHelp(window.location.hostname);
+        return;
+      }
+      if (msg.includes('disallowed_useragent')) {
+        showDisallowedUseragentHelp();
+        return;
+      }
+      if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+        showPopupBlockedHelp();
+        return;
+      }
+      if (code === 'auth/network-request-failed') {
+        showToast('Network error connecting to Google Auth servers.', 'error');
+        return;
+      }
+
+      showToast(msg || 'Google Sign-in failed.', 'error');
+    }
+
+    function showAuthDomainHelp(domain) {
+      const modal = document.getElementById('auth-help-modal');
+      const title = document.getElementById('auth-help-title');
+      const subtitle = document.getElementById('auth-help-subtitle');
+      const body = document.getElementById('auth-help-body');
+      const actions = document.getElementById('auth-help-actions');
+
+      title.innerText = 'Authorized Domain Needed';
+      subtitle.innerText = 'Firebase Authentication Security';
+      body.innerHTML = `
+        <p>Google requires authorizing your domain before allowing logins for project <span class="font-mono text-brand-cyan">trt-tracker-1b1a6</span>.</p>
+        <div class="bg-brand-surface p-3 rounded-xl border border-brand-border space-y-1.5">
+          <span class="text-[10px] uppercase font-bold text-brand-muted block">Your Current Domain</span>
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-mono text-xs text-white font-semibold select-all break-all" id="auth-domain-text">${domain}</span>
+            <button onclick="copyCurrentDomain('${domain}')" class="px-2.5 py-1 bg-brand-card hover:bg-brand-border text-brand-cyan font-bold rounded-lg border border-brand-border text-[11px] shrink-0">
+              Copy
+            </button>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-300">
+          To enable logins: In Firebase Console → Authentication → Settings → Authorized Domains, add this domain.
+        </p>
+      `;
+      actions.innerHTML = `
+        <button onclick="closeAuthHelpModal()" class="w-full bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+          Understood
+        </button>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function showPopupBlockedHelp() {
+      const modal = document.getElementById('auth-help-modal');
+      const title = document.getElementById('auth-help-title');
+      const subtitle = document.getElementById('auth-help-subtitle');
+      const body = document.getElementById('auth-help-body');
+      const actions = document.getElementById('auth-help-actions');
+
+      title.innerText = 'Browser Blocked Popup';
+      subtitle.innerText = 'Sign-In Window Blocked';
+      body.innerHTML = `
+        <p>Your browser or mobile webview prevented the Google Sign-In popup from opening.</p>
+        <p class="text-slate-300 text-[11px]">You can complete the sign-in using standard full-screen redirection instead.</p>
+      `;
+      actions.innerHTML = `
+        <button onclick="closeAuthHelpModal()" class="flex-1 bg-brand-surface hover:bg-brand-card text-brand-muted font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
+          Cancel
+        </button>
+        <button onclick="signInWithRedirectFlow()" class="flex-1 bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+          Use Redirect
+        </button>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function showDisallowedUseragentHelp() {
+      const modal = document.getElementById('auth-help-modal');
+      const title = document.getElementById('auth-help-title');
+      const subtitle = document.getElementById('auth-help-subtitle');
+      const body = document.getElementById('auth-help-body');
+      const actions = document.getElementById('auth-help-actions');
+
+      title.innerText = 'Android APK Notice';
+      subtitle.innerText = 'Google Security Policy';
+      body.innerHTML = `
+        <p>Google blocks sign-ins from embedded WebViews without updated user-agent headers (<span class="font-mono text-amber-400">403 disallowed_useragent</span>).</p>
+        <p class="text-slate-300 text-[11px]">We have updated the GitHub APK build workflow with the WebView fix. Pushing an update and rebuilding your APK via GitHub Actions resolves this!</p>
+      `;
+      actions.innerHTML = `
+        <button onclick="closeAuthHelpModal()" class="w-full bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+          Got It
+        </button>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function closeAuthHelpModal() {
+      const modal = document.getElementById('auth-help-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function copyCurrentDomain(dom) {
+      navigator.clipboard.writeText(dom).then(() => {
+        showToast('Domain copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Domain: ' + dom, 'info');
+      });
     }
 
     async function handleGoogleSignOut() {
@@ -2938,6 +3143,9 @@
     window.schedulePinOnSelectedDateToGoogleCalendar = schedulePinOnSelectedDateToGoogleCalendar;
     window.confirmDeleteGoogleCalendarEvent = confirmDeleteGoogleCalendarEvent;
     window.confirmClearGoogleCalendarSchedule = confirmClearGoogleCalendarSchedule;
+    window.closeAuthHelpModal = closeAuthHelpModal;
+    window.copyCurrentDomain = copyCurrentDomain;
+    window.signInWithRedirectFlow = signInWithRedirectFlow;
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {
