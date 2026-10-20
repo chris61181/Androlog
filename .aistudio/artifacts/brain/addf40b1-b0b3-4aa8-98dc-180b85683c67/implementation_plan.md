@@ -146,12 +146,22 @@ AndroLog is a personal precision Testosterone Replacement Therapy (TRT) manageme
 
 ---
 
+5. **Google Calendar Protocol Synchronization**:
+   - `androlog_cal_target`: 'primary' | 'dedicated' ("AndroLog TRT" secondary calendar)
+   - `androlog_cal_time`: default injection reminder time (e.g. 08:00 AM)
+   - `androlog_cal_auto_sync`: boolean flag to log completed injections to calendar
+   - Direct integration with Google Calendar v3 API (`/events` and `/calendarList`)
+   - 4-week and 8-week batch sync for Thursday & Sunday pin days with deltoid rotation and popup alert notifications.
+
+---
+
 ### 5. Verification & Delivery Checklist
 
 - [x] Protocol verified: 120 mg/wk, 60 mg Thu/Sun, 27g 1/2" Deltoids.
 - [x] Longitudinal trajectory SVG graph rendering 5 baseline 2026 panels with ~1000 ng/dL target.
 - [x] Syringe Draw Helper dynamically converting mg to mL and U-100 units on input.
 - [x] Google Drive v3 integration active with "AndroLog TRT" folder, backup snapshot, CSV saving, and file listing.
+- [x] Google Calendar v3 integration active with schedule sync, pin reminders, calendar day indicators, and completed dose recording.
 - [x] Local CSV export and JSON backup/restore functional.
 - [x] Destructive actions protected by confirmation modals.
 - [x] Android APK build workflow (`build-apk.yml`) configured for GitHub Actions.

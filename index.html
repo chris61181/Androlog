@@ -182,6 +182,14 @@
           <label class="text-brand-muted block text-xs mb-1">Date & Time (Change to backdate missed pins)</label>
           <input type="datetime-local" id="input-date" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-brand-cyan">
         </div>
+        <div class="flex items-center justify-between text-xs pt-0.5">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="dash-cal-sync-check" class="accent-sky-500 rounded">
+            <span class="text-[11px] text-brand-muted flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs text-brand-cyan">event</span> Record pin to Google Calendar
+            </span>
+          </label>
+        </div>
         <button onclick="logDose()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
           <span class="material-symbols-outlined text-lg">check_circle</span> Confirm & Save Pin
         </button>
@@ -204,6 +212,49 @@
 
     <!-- Tab 2: Interactive Calendar -->
     <div id="view-calendar" class="space-y-4 hidden">
+      <!-- Google Calendar Sync Header Card -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
+        <!-- Disconnected View -->
+        <div id="cal-unauth-banner" class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shrink-0">
+              <span class="material-symbols-outlined text-xl">calendar_month</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-white text-xs leading-tight">Google Calendar Reminders</h4>
+              <p class="text-[11px] text-brand-muted mt-0.5">Sync Thu & Sun injection schedule to Google Calendar</p>
+            </div>
+          </div>
+          <button onclick="handleGoogleSignIn()" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold text-xs py-2 px-3 rounded-xl flex items-center gap-1 shrink-0 transition shadow-md shadow-sky-500/10">
+            <span class="material-symbols-outlined text-sm">login</span> Connect
+          </button>
+        </div>
+
+        <!-- Connected View -->
+        <div id="cal-auth-banner" class="space-y-3 hidden">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs font-bold text-white">Google Calendar Connected</span>
+              <span class="text-[10px] text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded border border-brand-cyan/30 font-medium" id="cal-target-badge">Primary Calendar</span>
+            </div>
+            <span class="text-[11px] text-brand-muted font-medium" id="cal-synced-count">0 in View</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <button onclick="syncUpcomingScheduleToGoogleCalendar(4)" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition active:scale-95 shadow-sm text-[11px]" title="Sync next 4 weeks of Thu & Sun pins">
+              <span class="material-symbols-outlined text-sm">calendar_add_on</span> 4 Wks
+            </button>
+            <button onclick="syncUpcomingScheduleToGoogleCalendar(8)" class="bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-cyan/30 font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition active:scale-95 text-[11px]" title="Sync next 8 weeks of Thu & Sun pins">
+              <span class="material-symbols-outlined text-sm">date_range</span> 8 Wks
+            </button>
+            <button onclick="fetchGoogleCalendarEvents()" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition active:scale-95 text-[11px]" title="Refresh events from Google Calendar">
+              <span class="material-symbols-outlined text-sm">refresh</span> Sync
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
         <div class="flex items-center justify-between mb-3">
           <button onclick="changeMonth(-1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
@@ -211,7 +262,7 @@
           </button>
           <div class="text-center">
             <h3 class="font-bold text-white text-base" id="cal-month-title">October 2026</h3>
-            <span class="text-[10px] text-brand-muted">Thu & Sun Target Pin Days Highlighted</span>
+            <span class="text-[10px] text-brand-muted">Thu & Sun Target Pin Days • Blue dots = Google Cal</span>
           </div>
           <button onclick="changeMonth(1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
             <span class="material-symbols-outlined text-sm">chevron_right</span>
@@ -228,10 +279,11 @@
         <div class="flex items-center justify-between">
           <h4 class="text-xs font-bold text-brand-cyan uppercase tracking-wider" id="cal-selected-label">Selected Date</h4>
           <button onclick="jumpToLogForSelectedDate()" class="text-xs font-bold bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 px-2.5 py-1 rounded-lg hover:bg-brand-cyan hover:text-brand-dark transition flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">add</span> Log Pin on This Day
+            <span class="material-symbols-outlined text-sm">add</span> Log Pin
           </button>
         </div>
         <div id="cal-day-logs" class="space-y-2 text-xs"></div>
+        <div id="cal-day-google-events" class="space-y-2 text-xs pt-2 border-t border-brand-border/40"></div>
       </div>
     </div>
 
@@ -381,16 +433,16 @@
         </div>
       </div>
 
-      <!-- Google Drive Cloud Sync & Remote Backup -->
+      <!-- Google Workspace Cloud Sync & Calendar -->
       <div id="drive-section" class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
-              <span class="material-symbols-outlined text-lg">cloud_sync</span>
+              <span class="material-symbols-outlined text-lg">calendar_month</span>
             </div>
             <div>
-              <h3 class="font-bold text-white text-base leading-tight">Google Drive</h3>
-              <p class="text-[11px] text-brand-muted" id="drive-connection-status">Cloud sync & remote backup</p>
+              <h3 class="font-bold text-white text-base leading-tight">Google Workspace</h3>
+              <p class="text-[11px] text-brand-muted" id="drive-connection-status">Google Calendar reminders & Drive backups</p>
             </div>
           </div>
           <span id="drive-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surface text-brand-muted border border-brand-border">Disconnected</span>
@@ -399,7 +451,7 @@
         <!-- Not Signed In View -->
         <div id="drive-unauth-view" class="space-y-3 pt-1">
           <p class="text-xs text-brand-muted leading-relaxed">
-            Connect your Google account to backup your TRT protocols, dose history, and custom sites directly to a secure <span class="text-white font-semibold">AndroLog TRT</span> folder in Google Drive.
+            Connect your Google account to sync your TRT injection schedule directly to <span class="text-white font-semibold">Google Calendar</span> and backup your dose history securely to <span class="text-white font-semibold">Google Drive</span>.
           </p>
           <div class="pt-1">
             <button class="gsi-material-button" onclick="handleGoogleSignIn()">
@@ -436,38 +488,103 @@
             </button>
           </div>
 
-          <!-- Drive Actions -->
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <button onclick="backupToGoogleDrive()" id="btn-backup-drive" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-sky-500/10">
-              <span class="material-symbols-outlined text-base">cloud_upload</span> Backup to Drive
-            </button>
-            <button onclick="exportCSVToGoogleDrive()" id="btn-export-csv-drive" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
-              <span class="material-symbols-outlined text-base text-brand-cyan">table_view</span> Save CSV to Drive
-            </button>
-          </div>
-
-          <!-- Auto-Sync Toggle -->
-          <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
-            <div>
-              <span class="text-white font-semibold block">Auto-Sync on Pin</span>
-              <span class="text-brand-muted text-[11px]">Save backup to Drive when logging each dose</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="drive-auto-sync" onchange="toggleAutoSync(event)" class="sr-only peer">
-              <div class="w-9 h-5 bg-brand-card peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-cyan"></div>
-            </label>
-          </div>
-
-          <!-- Cloud Backups Header & List -->
-          <div class="space-y-2 pt-2 border-t border-brand-border/50">
+          <!-- Google Calendar Protocol Settings -->
+          <div class="space-y-2.5 pt-2 border-t border-brand-border/50">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Drive Files (AndroLog TRT)</span>
-              <button onclick="loadDriveBackupsList()" class="text-[11px] text-brand-cyan hover:underline flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">refresh</span> Refresh
+              <span class="text-xs font-bold text-brand-cyan uppercase tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm">calendar_month</span> Google Calendar Sync
+              </span>
+            </div>
+
+            <!-- Calendar Target Select -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
+              <div>
+                <span class="text-white font-semibold block">Target Calendar</span>
+                <span class="text-brand-muted text-[11px]">Where pin events get created</span>
+              </div>
+              <select id="setting-cal-target" onchange="updateCalTargetPreference(this.value)" class="bg-brand-card text-white text-xs border border-brand-border rounded-lg px-2.5 py-1.5 focus:border-brand-cyan">
+                <option value="primary">Primary Calendar</option>
+                <option value="dedicated">AndroLog TRT (Dedicated)</option>
+              </select>
+            </div>
+
+            <!-- Default Reminder Time -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
+              <div>
+                <span class="text-white font-semibold block">Pin Alert Time</span>
+                <span class="text-brand-muted text-[11px]">15-min notification on pin day</span>
+              </div>
+              <input type="time" id="setting-cal-time" value="08:00" onchange="updateCalTimePreference(this.value)" class="bg-brand-card text-white text-xs border border-brand-border rounded-lg px-2.5 py-1 focus:border-brand-cyan font-mono">
+            </div>
+
+            <!-- Calendar Auto-Log Toggle -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
+              <div>
+                <span class="text-white font-semibold block">Auto-Sync Injections</span>
+                <span class="text-brand-muted text-[11px]">Add completed pins to Google Calendar</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="cal-auto-sync" onchange="toggleCalAutoSync(event)" class="sr-only peer">
+                <div class="w-9 h-5 bg-brand-card peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-cyan"></div>
+              </label>
+            </div>
+
+            <!-- Calendar Action Buttons -->
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <button onclick="syncUpcomingScheduleToGoogleCalendar(4)" class="bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-cyan/30 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
+                <span class="material-symbols-outlined text-sm">calendar_add_on</span> Sync 4 Wks
+              </button>
+              <button onclick="syncUpcomingScheduleToGoogleCalendar(8)" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-sky-500/10">
+                <span class="material-symbols-outlined text-sm">date_range</span> Sync 8 Wks
               </button>
             </div>
-            <div id="drive-files-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
-              <p class="text-xs text-brand-muted py-2">Loading files from Drive...</p>
+
+            <button onclick="confirmClearGoogleCalendarSchedule()" class="w-full text-[11px] font-semibold text-red-400/80 hover:text-red-400 py-1.5 flex items-center justify-center gap-1 transition">
+              <span class="material-symbols-outlined text-xs">delete_sweep</span> Clear Scheduled Pins from Google Calendar
+            </button>
+          </div>
+
+          <!-- Google Drive Cloud Backups -->
+          <div class="space-y-2.5 pt-3 border-t border-brand-border/50">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm text-brand-cyan">cloud_sync</span> Google Drive Backups
+              </span>
+            </div>
+
+            <!-- Drive Actions -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <button onclick="backupToGoogleDrive()" id="btn-backup-drive" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-sky-500/10">
+                <span class="material-symbols-outlined text-base">cloud_upload</span> Backup to Drive
+              </button>
+              <button onclick="exportCSVToGoogleDrive()" id="btn-export-csv-drive" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
+                <span class="material-symbols-outlined text-base text-brand-cyan">table_view</span> Save CSV to Drive
+              </button>
+            </div>
+
+            <!-- Auto-Sync Toggle -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
+              <div>
+                <span class="text-white font-semibold block">Auto-Sync on Pin</span>
+                <span class="text-brand-muted text-[11px]">Save backup to Drive when logging each dose</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="drive-auto-sync" onchange="toggleAutoSync(event)" class="sr-only peer">
+                <div class="w-9 h-5 bg-brand-card peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-cyan"></div>
+              </label>
+            </div>
+
+            <!-- Cloud Backups Header & List -->
+            <div class="space-y-2 pt-2 border-t border-brand-border/50">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Drive Files (AndroLog TRT)</span>
+                <button onclick="loadDriveBackupsList()" class="text-[11px] text-brand-cyan hover:underline flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs">refresh</span> Refresh
+                </button>
+              </div>
+              <div id="drive-files-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <p class="text-xs text-brand-muted py-2">Loading files from Drive...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1330,21 +1447,31 @@
         const isTargetPinDay = (dow === 0 || dow === 4);
         const ymd = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const hasPins = pinMap[ymd] && pinMap[ymd].length > 0;
+        const calEvents = googleCalEventsByDate[ymd] || [];
+        const hasCalEvents = calEvents.length > 0;
+        const hasCompletedCal = calEvents.some(e => e.type === 'completed');
         const isSelected = ymd === selectedCalDateStr;
 
         const baseStyle = isSelected
           ? 'bg-brand-cyan text-brand-dark font-bold border-brand-cyan'
           : hasPins
             ? 'bg-brand-surface text-white font-bold border-brand-cyan/70'
-            : isTargetPinDay
-              ? 'bg-brand-surface/90 text-slate-200 border-brand-cyan/25'
-              : 'bg-brand-surface/40 text-brand-muted border-brand-border/30';
+            : hasCalEvents
+              ? 'bg-brand-surface text-sky-200 border-sky-400/50'
+              : isTargetPinDay
+                ? 'bg-brand-surface/90 text-slate-200 border-brand-cyan/25'
+                : 'bg-brand-surface/40 text-brand-muted border-brand-border/30';
 
-        const dot = hasPins
-          ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : 'bg-brand-cyan'} mx-auto mt-0.5 block"></span>`
-          : isTargetPinDay
-            ? `<span class="w-1 h-1 rounded-full bg-brand-muted/40 mx-auto mt-0.5 block"></span>`
-            : `<span class="w-1.5 h-1.5 mx-auto mt-0.5 block"></span>`;
+        let dot = '';
+        if (hasPins) {
+          dot = `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : 'bg-brand-cyan'} mx-auto mt-0.5 block"></span>`;
+        } else if (hasCalEvents) {
+          dot = `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : (hasCompletedCal ? 'bg-emerald-400' : 'bg-sky-400')} mx-auto mt-0.5 block" title="Google Calendar Event"></span>`;
+        } else if (isTargetPinDay) {
+          dot = `<span class="w-1 h-1 rounded-full bg-brand-muted/40 mx-auto mt-0.5 block"></span>`;
+        } else {
+          dot = `<span class="w-1.5 h-1.5 mx-auto mt-0.5 block"></span>`;
+        }
 
         grid.innerHTML += `
           <button onclick="selectCalendarDate('${ymd}')" class="py-2 rounded-xl border ${baseStyle} flex flex-col items-center justify-center transition">
@@ -1366,29 +1493,89 @@
       document.getElementById('cal-selected-label').innerText = `Pins on ${selectedCalDateStr}`;
       const container = document.getElementById('cal-day-logs');
       if (dayLogs.length === 0) {
-        container.innerHTML = `<p class="text-brand-muted py-2">No injections logged on this date.</p>`;
+        container.innerHTML = `<p class="text-brand-muted py-1">No local injections logged on this date.</p>`;
+      } else {
+        container.innerHTML = '';
+        dayLogs.forEach(item => {
+          container.innerHTML += `
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-brand-surface border border-brand-border">
+              <div>
+                <span class="font-bold text-white block">${item.site}</span>
+                <span class="text-[11px] text-brand-muted">${item.dateText}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="font-bold text-brand-cyan px-2 py-0.5 rounded bg-brand-cyan/10">${item.dose} mg</span>
+                <button onclick="editDose(${item.idx})" class="text-brand-muted hover:text-brand-cyan p-1" title="Edit Pin">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+                <button onclick="deleteDose(${item.idx})" class="text-brand-muted hover:text-red-400 p-1" title="Delete Pin">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      renderSelectedDayGoogleEvents();
+    }
+
+    function renderSelectedDayGoogleEvents() {
+      const gContainer = document.getElementById('cal-day-google-events');
+      if (!gContainer) return;
+
+      const events = googleCalEventsByDate[selectedCalDateStr] || [];
+      const isAuth = !!currentUser && !!cachedAccessToken;
+
+      if (!isAuth) {
+        gContainer.innerHTML = `
+          <div class="flex items-center justify-between py-1 text-xs text-brand-muted">
+            <span class="flex items-center gap-1 text-[11px]">
+              <span class="material-symbols-outlined text-xs text-brand-cyan">event</span> Google Calendar sync disconnected
+            </span>
+            <button onclick="handleGoogleSignIn()" class="text-brand-cyan font-bold hover:underline text-[11px]">Connect</button>
+          </div>
+        `;
         return;
       }
-      container.innerHTML = '';
-      dayLogs.forEach(item => {
-        container.innerHTML += `
+
+      if (events.length === 0) {
+        gContainer.innerHTML = `
+          <div class="flex items-center justify-between py-1">
+            <span class="text-[11px] text-brand-muted">No Google Calendar alert for ${selectedCalDateStr}</span>
+            <button onclick="schedulePinOnSelectedDateToGoogleCalendar()" class="text-[11px] font-bold text-brand-cyan hover:underline flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">calendar_add_on</span> Schedule Pin Alert
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      let html = `<div class="space-y-1.5"><span class="text-[10px] font-bold uppercase tracking-wider text-brand-cyan block">Google Calendar Events</span>`;
+      events.forEach(ev => {
+        const isCompleted = ev.type === 'completed';
+        const icon = isCompleted ? 'check_circle' : 'alarm';
+        const colorClass = isCompleted ? 'text-emerald-400' : 'text-brand-cyan';
+
+        html += `
           <div class="flex items-center justify-between p-2.5 rounded-xl bg-brand-surface border border-brand-border">
-            <div>
-              <span class="font-bold text-white block">${item.site}</span>
-              <span class="text-[11px] text-brand-muted">${item.dateText}</span>
+            <div class="min-w-0 pr-2">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-xs ${colorClass}">${icon}</span>
+                <span class="font-bold text-white text-xs truncate">${ev.summary}</span>
+              </div>
+              <span class="text-[11px] text-brand-muted block mt-0.5">${ev.startStr} • ${isCompleted ? 'Completed Injection' : 'Scheduled Reminder'}</span>
             </div>
-            <div class="flex items-center gap-1">
-              <span class="font-bold text-brand-cyan px-2 py-0.5 rounded bg-brand-cyan/10">${item.dose} mg</span>
-              <button onclick="editDose(${item.idx})" class="text-brand-muted hover:text-brand-cyan p-1" title="Edit Pin">
-                <span class="material-symbols-outlined text-sm">edit</span>
-              </button>
-              <button onclick="deleteDose(${item.idx})" class="text-brand-muted hover:text-red-400 p-1" title="Delete Pin">
+            <div class="flex items-center gap-1 shrink-0">
+              <button onclick="confirmDeleteGoogleCalendarEvent('${ev.id}', '${ev.summary.replace(/'/g, "\\'")}')" class="text-brand-muted hover:text-red-400 p-1.5 rounded-lg bg-brand-card hover:bg-red-500/10 transition" title="Delete from Google Calendar">
                 <span class="material-symbols-outlined text-sm">delete</span>
               </button>
             </div>
           </div>
         `;
       });
+      html += `</div>`;
+      gContainer.innerHTML = html;
     }
 
     function jumpToLogForSelectedDate() {
@@ -1439,6 +1626,12 @@
       // Auto-Sync to Google Drive if configured and authenticated
       if (cachedAccessToken && isAutoSyncEnabled()) {
         backupToGoogleDriveSilently();
+      }
+
+      // Auto-Sync to Google Calendar if configured and authenticated
+      const calCheck = document.getElementById('dash-cal-sync-check');
+      if (cachedAccessToken && ((calCheck && calCheck.checked) || isCalAutoLogEnabled())) {
+        logCompletedPinToGoogleCalendar(doseMg, site, dateObj, dateText);
       }
     }
 
@@ -1657,10 +1850,17 @@
         activeBtn.classList.add('text-brand-cyan');
       }
       window.scrollTo(0, 0);
+
+      if (tabName === 'calendar') {
+        renderCalendar();
+        if (cachedAccessToken) {
+          fetchGoogleCalendarEvents();
+        }
+      }
     }
 
     // ----------------------------------------------------
-    // Google Drive Integration & Firebase Auth
+    // Google Workspace Integration (Calendar & Drive) & Firebase Auth
     // ----------------------------------------------------
     async function initFirebase() {
       try {
@@ -1686,15 +1886,19 @@
         onAuthStateChanged(auth, async (user) => {
           currentUser = user;
           if (user) {
-            updateDriveUIState();
+            updateGoogleUIState();
             if (cachedAccessToken) {
               loadDriveBackupsList();
+              fetchGoogleCalendarEvents();
             }
           } else {
             cachedAccessToken = null;
             currentUser = null;
             cachedDriveFolderId = null;
-            updateDriveUIState();
+            cachedCalendarId = null;
+            googleCalEventsByDate = {};
+            updateGoogleUIState();
+            renderCalendar();
           }
         });
       } catch (err) {
@@ -1702,7 +1906,7 @@
       }
     }
 
-    function updateDriveUIState() {
+    function updateGoogleUIState() {
       const isAuth = !!currentUser && !!cachedAccessToken;
       const unauthView = document.getElementById('drive-unauth-view');
       const authView = document.getElementById('drive-auth-view');
@@ -1711,15 +1915,36 @@
       const headerLabel = document.getElementById('header-drive-label');
       const headerDot = document.getElementById('header-drive-dot');
 
+      // Calendar Tab Elements
+      const calUnauth = document.getElementById('cal-unauth-banner');
+      const calAuth = document.getElementById('cal-auth-banner');
+      const calTargetBadge = document.getElementById('cal-target-badge');
+
+      // Settings Elements
+      const targetSelect = document.getElementById('setting-cal-target');
+      const timeInput = document.getElementById('setting-cal-time');
+      const calAutoSyncCheckbox = document.getElementById('cal-auto-sync');
+      const driveAutoSyncCheckbox = document.getElementById('drive-auto-sync');
+
+      if (targetSelect) targetSelect.value = getCalTargetPreference();
+      if (timeInput) timeInput.value = getCalReminderTime();
+      if (calAutoSyncCheckbox) calAutoSyncCheckbox.checked = isCalAutoLogEnabled();
+      if (calTargetBadge) {
+        calTargetBadge.innerText = getCalTargetPreference() === 'dedicated' ? 'AndroLog TRT' : 'Primary Calendar';
+      }
+
       if (isAuth) {
         if (unauthView) unauthView.classList.add('hidden');
         if (authView) authView.classList.remove('hidden');
+        if (calUnauth) calUnauth.classList.add('hidden');
+        if (calAuth) calAuth.classList.remove('hidden');
+
         if (statusBadge) {
           statusBadge.innerText = 'Connected';
           statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
         }
-        if (connStatus) connStatus.innerText = currentUser.email || 'Cloud sync active';
-        if (headerLabel) headerLabel.innerText = 'Synced';
+        if (connStatus) connStatus.innerText = currentUser.email || 'Google Workspace active';
+        if (headerLabel) headerLabel.innerText = 'Google Sync';
         if (headerDot) {
           headerDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
         }
@@ -1731,25 +1956,27 @@
           photoEl.src = currentUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&q=80';
         }
 
-        // Restore auto-sync toggle setting
-        const autoSyncCheckbox = document.getElementById('drive-auto-sync');
-        if (autoSyncCheckbox) {
-          autoSyncCheckbox.checked = isAutoSyncEnabled();
+        if (driveAutoSyncCheckbox) {
+          driveAutoSyncCheckbox.checked = isAutoSyncEnabled();
         }
       } else {
         if (unauthView) unauthView.classList.remove('hidden');
         if (authView) authView.classList.add('hidden');
+        if (calUnauth) calUnauth.classList.remove('hidden');
+        if (calAuth) calAuth.classList.add('hidden');
+
         if (statusBadge) {
           statusBadge.innerText = 'Disconnected';
           statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surface text-brand-muted border border-brand-border';
         }
-        if (connStatus) connStatus.innerText = 'Cloud sync & remote backup';
-        if (headerLabel) headerLabel.innerText = 'Drive';
+        if (connStatus) connStatus.innerText = 'Google Calendar reminders & Drive backups';
+        if (headerLabel) headerLabel.innerText = 'Google';
         if (headerDot) {
           headerDot.className = 'w-2 h-2 rounded-full bg-slate-500';
         }
       }
     }
+    const updateDriveUIState = updateGoogleUIState; // Backward compatibility alias
 
     function isAutoSyncEnabled() {
       return localStorage.getItem('androlog_auto_sync') === 'true';
@@ -1772,24 +1999,32 @@
       try {
         isSigningIn = true;
         const provider = new GoogleAuthProvider();
+        // Google Drive scopes
         provider.addScope('https://www.googleapis.com/auth/drive');
         provider.addScope('https://www.googleapis.com/auth/drive.file');
         provider.addScope('https://www.googleapis.com/auth/drive.appdata');
         provider.addScope('https://www.googleapis.com/auth/drive.readonly');
         provider.addScope('https://www.googleapis.com/auth/drive.metadata');
+
+        // Google Calendar scopes
+        provider.addScope('https://www.googleapis.com/auth/calendar');
+        provider.addScope('https://www.googleapis.com/auth/calendar.events');
+        provider.addScope('https://www.googleapis.com/auth/calendar.calendarlist');
+
         provider.setCustomParameters({ prompt: 'consent' });
 
         const result = await signInWithPopup(auth, provider);
         const credential = GoogleAuthProvider.credentialFromResult(result);
         if (!credential?.accessToken) {
-          throw new Error('Could not obtain Google Drive OAuth access token.');
+          throw new Error('Could not obtain Google Workspace OAuth access token.');
         }
 
         cachedAccessToken = credential.accessToken;
         currentUser = result.user;
-        updateDriveUIState();
-        showToast(`Connected to Google Drive as ${currentUser.email}!`, 'success');
+        updateGoogleUIState();
+        showToast(`Connected to Google as ${currentUser.email}!`, 'success');
         await loadDriveBackupsList();
+        await fetchGoogleCalendarEvents();
       } catch (err) {
         console.error('Google Sign-in error:', err);
         showToast(err.message || 'Failed to sign in with Google.', 'error');
@@ -1805,8 +2040,11 @@
         cachedAccessToken = null;
         currentUser = null;
         cachedDriveFolderId = null;
-        updateDriveUIState();
-        showToast('Signed out of Google Drive.', 'info');
+        cachedCalendarId = null;
+        googleCalEventsByDate = {};
+        updateGoogleUIState();
+        renderCalendar();
+        showToast('Signed out of Google account.', 'info');
       } catch (err) {
         console.error('Sign-out error:', err);
         showToast('Sign out error: ' + err.message, 'error');
@@ -2166,6 +2404,498 @@
     }
 
     // ----------------------------------------------------
+    // Google Calendar API Integration
+    // ----------------------------------------------------
+    let cachedCalendarId = null;
+    let googleCalEventsByDate = {}; // { "2026-10-22": [ { id, summary, description, startStr, type } ] }
+    let isFetchingGoogleCal = false;
+
+    function getCalTargetPreference() {
+      return localStorage.getItem('androlog_cal_target') || 'primary';
+    }
+
+    function updateCalTargetPreference(val) {
+      localStorage.setItem('androlog_cal_target', val);
+      cachedCalendarId = null;
+      const badge = document.getElementById('cal-target-badge');
+      if (badge) badge.innerText = val === 'dedicated' ? 'AndroLog TRT' : 'Primary Calendar';
+      fetchGoogleCalendarEvents();
+      showToast(`Calendar target set to ${val === 'dedicated' ? 'dedicated "AndroLog TRT" calendar' : 'Primary Calendar'}.`, 'info');
+    }
+
+    function getCalReminderTime() {
+      return localStorage.getItem('androlog_cal_time') || '08:00';
+    }
+
+    function updateCalTimePreference(val) {
+      localStorage.setItem('androlog_cal_time', val);
+      showToast(`Default pin reminder time set to ${val}.`, 'info');
+    }
+
+    function isCalAutoLogEnabled() {
+      return localStorage.getItem('androlog_cal_auto_sync') === 'true';
+    }
+
+    function toggleCalAutoLog(event) {
+      localStorage.setItem('androlog_cal_auto_sync', event.target.checked ? 'true' : 'false');
+      if (event.target.checked) {
+        showToast('Auto-sync enabled: logged pins will post to Google Calendar.', 'success');
+      } else {
+        showToast('Calendar auto-sync disabled.', 'info');
+      }
+    }
+
+    // Resolve or create target calendar ID
+    async function getGoogleCalendarId() {
+      const targetPref = getCalTargetPreference();
+      if (targetPref === 'primary') {
+        return 'primary';
+      }
+      if (cachedCalendarId) return cachedCalendarId;
+      const storedId = localStorage.getItem('androlog_dedicated_cal_id');
+      if (storedId) {
+        cachedCalendarId = storedId;
+        return cachedCalendarId;
+      }
+      if (!cachedAccessToken) throw new Error('Not connected to Google account.');
+
+      // Check user's calendar list to see if "AndroLog TRT" exists
+      const listRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+        headers: { Authorization: `Bearer ${cachedAccessToken}` }
+      });
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        const existing = listData.items?.find(c => c.summary === 'AndroLog TRT' && !c.deleted);
+        if (existing) {
+          cachedCalendarId = existing.id;
+          localStorage.setItem('androlog_dedicated_cal_id', existing.id);
+          return cachedCalendarId;
+        }
+      }
+
+      // If not found, create secondary calendar
+      const createRes = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${cachedAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          summary: 'AndroLog TRT',
+          description: 'Precision TRT injection schedule, reminders, and protocol dose records.'
+        })
+      });
+
+      if (!createRes.ok) {
+        console.warn('Could not create dedicated secondary calendar, falling back to primary.');
+        return 'primary';
+      }
+
+      const newCal = await createRes.json();
+      cachedCalendarId = newCal.id;
+      localStorage.setItem('androlog_dedicated_cal_id', newCal.id);
+      return cachedCalendarId;
+    }
+
+    // Fetch Google Calendar events for visible calendar month
+    async function fetchGoogleCalendarEvents() {
+      if (!cachedAccessToken) return;
+      if (isFetchingGoogleCal) return;
+      isFetchingGoogleCal = true;
+
+      try {
+        const calId = await getGoogleCalendarId();
+        // Visible window: from first day of month to end of month + buffer
+        const startOfMonth = new Date(calYear, calMonth, 1, 0, 0, 0);
+        const endOfMonth = new Date(calYear, calMonth + 1, 7, 23, 59, 59);
+
+        const timeMin = startOfMonth.toISOString();
+        const timeMax = endOfMonth.toISOString();
+
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${cachedAccessToken}` }
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || 'Failed to fetch Google Calendar events.');
+        }
+
+        const data = await res.json();
+        const events = data.items || [];
+
+        // Filter events related to AndroLog or TRT
+        googleCalEventsByDate = {};
+        let andrologEventCount = 0;
+
+        events.forEach(ev => {
+          const summary = ev.summary || '';
+          const isAndroLog = summary.includes('AndroLog') || summary.includes('TRT') || ev.extendedProperties?.private?.source === 'androlog';
+          if (!isAndroLog) return;
+
+          andrologEventCount++;
+          const startDt = ev.start?.dateTime ? new Date(ev.start.dateTime) : (ev.start?.date ? new Date(ev.start.date + 'T00:00:00') : null);
+          if (!startDt) return;
+
+          const ymd = toLocalYMD(startDt.getTime());
+          if (!googleCalEventsByDate[ymd]) googleCalEventsByDate[ymd] = [];
+          googleCalEventsByDate[ymd].push({
+            id: ev.id,
+            summary: ev.summary,
+            description: ev.description || '',
+            startStr: ev.start?.dateTime ? startDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'All-Day',
+            htmlLink: ev.htmlLink,
+            type: summary.startsWith('✅') ? 'completed' : 'scheduled'
+          });
+        });
+
+        const countEl = document.getElementById('cal-synced-count');
+        if (countEl) countEl.innerText = `${andrologEventCount} in View`;
+
+        renderCalendar();
+      } catch (err) {
+        console.error('Fetch Google Calendar events error:', err);
+      } finally {
+        isFetchingGoogleCal = false;
+      }
+    }
+
+    // Sync upcoming schedule (4 or 8 weeks) to Google Calendar
+    async function syncUpcomingScheduleToGoogleCalendar(weeks = 8) {
+      if (!cachedAccessToken) {
+        showToast('Please connect your Google account first.', 'error');
+        return;
+      }
+
+      showToast(`Syncing ${weeks} weeks of TRT pin reminders to Google Calendar...`, 'info');
+
+      try {
+        const calId = await getGoogleCalendarId();
+        const cfg = getConfig();
+        const sites = getSites();
+        const history = getHistory();
+        const reminderTime = getCalReminderTime();
+        const [rHour, rMin] = (reminderTime || '08:00').split(':').map(Number);
+
+        // Site rotation helper
+        const lastUsed = {};
+        history.forEach((h, index) => {
+          if (!lastUsed[h.site]) lastUsed[h.site] = index + 1;
+        });
+        const sortedSites = [...sites].sort((a, b) => {
+          const orderA = lastUsed[a] !== undefined ? lastUsed[a] : 999;
+          const orderB = lastUsed[b] !== undefined ? lastUsed[b] : 999;
+          return orderB - orderA;
+        });
+        const rotationList = sortedSites.length > 0 ? sortedSites : ['Left Deltoid', 'Right Deltoid'];
+
+        // Target pin days: Thu (4) & Sun (0) GameDay Men's Health protocol
+        const targetDays = [0, 4];
+        const now = new Date();
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        let scheduledCount = 0;
+        let skippedCount = 0;
+        const totalDays = weeks * 7;
+        let rotIndex = 0;
+
+        for (let i = 0; i <= totalDays; i++) {
+          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+          const dow = d.getDay();
+          if (targetDays.includes(dow)) {
+            const ymd = toLocalYMD(d.getTime());
+
+            // Check if already scheduled
+            const existing = googleCalEventsByDate[ymd] && googleCalEventsByDate[ymd].some(e => e.type === 'scheduled');
+            if (existing) {
+              skippedCount++;
+              continue;
+            }
+
+            const site = rotationList[rotIndex % rotationList.length];
+            rotIndex++;
+
+            const startDt = new Date(d.getFullYear(), d.getMonth(), d.getDate(), rHour, rMin, 0);
+            const endDt = new Date(startDt.getTime() + 15 * 60 * 1000);
+
+            const doseMg = cfg.doseMg || 60;
+            const conc = cfg.concentration || 200;
+            const volMl = (doseMg / conc).toFixed(2);
+
+            const payload = {
+              summary: `💉 AndroLog TRT: ${doseMg}mg ${cfg.compound || 'Test Cyp'}`,
+              description: `Protocol: ${cfg.protocol || "120mg/wk (60mg Thu & Sun)"}\nDose: ${doseMg} mg (${volMl} mL)\nTarget Depot Site: ${site}\nProvider: ${cfg.provider || "GameDay Men's Health"}\nLab Partner: ${cfg.labPartner || "AccessLabs"}\n\nManaged via AndroLog TRT Tracker`,
+              start: {
+                dateTime: startDt.toISOString(),
+                timeZone: tz
+              },
+              end: {
+                dateTime: endDt.toISOString(),
+                timeZone: tz
+              },
+              reminders: {
+                useDefault: false,
+                overrides: [
+                  { method: 'popup', minutes: 15 },
+                  { method: 'popup', minutes: 60 }
+                ]
+              },
+              extendedProperties: {
+                private: {
+                  source: 'androlog',
+                  type: 'scheduled_pin',
+                  ymd: ymd,
+                  doseMg: String(doseMg),
+                  site: site
+                }
+              }
+            };
+
+            const postRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${cachedAccessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (postRes.ok) {
+              scheduledCount++;
+            }
+          }
+        }
+
+        await fetchGoogleCalendarEvents();
+        showToast(`Synced ${scheduledCount} TRT reminders to Google Calendar! (${skippedCount} already existed)`, 'success');
+      } catch (err) {
+        console.error('Google Calendar sync error:', err);
+        showToast('Google Calendar sync error: ' + (err.message || 'Unknown error'), 'error');
+      }
+    }
+
+    // Schedule pin on selected date
+    async function schedulePinOnSelectedDateToGoogleCalendar() {
+      if (!cachedAccessToken) {
+        showToast('Please connect your Google account first.', 'error');
+        return;
+      }
+      if (!selectedCalDateStr) {
+        showToast('Select a date on the calendar first.', 'info');
+        return;
+      }
+
+      try {
+        const calId = await getGoogleCalendarId();
+        const cfg = getConfig();
+        const sites = getSites();
+        const history = getHistory();
+        const reminderTime = getCalReminderTime();
+        const [rHour, rMin] = (reminderTime || '08:00').split(':').map(Number);
+
+        const lastUsed = {};
+        history.forEach((h, index) => {
+          if (!lastUsed[h.site]) lastUsed[h.site] = index + 1;
+        });
+        const sortedSites = [...sites].sort((a, b) => {
+          const orderA = lastUsed[a] !== undefined ? lastUsed[a] : 999;
+          const orderB = lastUsed[b] !== undefined ? lastUsed[b] : 999;
+          return orderB - orderA;
+        });
+        const targetSite = sortedSites.length > 0 ? sortedSites[0] : 'Deltoid';
+
+        const [y, m, d] = selectedCalDateStr.split('-').map(Number);
+        const startDt = new Date(y, m - 1, d, rHour, rMin, 0);
+        const endDt = new Date(startDt.getTime() + 15 * 60 * 1000);
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        const doseMg = cfg.doseMg || 60;
+        const conc = cfg.concentration || 200;
+        const volMl = (doseMg / conc).toFixed(2);
+
+        const payload = {
+          summary: `💉 AndroLog TRT: ${doseMg}mg ${cfg.compound || 'Test Cyp'}`,
+          description: `Protocol: ${cfg.protocol || "120mg/wk (60mg Thu & Sun)"}\nDose: ${doseMg} mg (${volMl} mL)\nTarget Depot Site: ${targetSite}\nProvider: ${cfg.provider || "GameDay Men's Health"}\n\nManaged via AndroLog TRT Tracker`,
+          start: {
+            dateTime: startDt.toISOString(),
+            timeZone: tz
+          },
+          end: {
+            dateTime: endDt.toISOString(),
+            timeZone: tz
+          },
+          reminders: {
+            useDefault: false,
+            overrides: [
+              { method: 'popup', minutes: 15 }
+            ]
+          },
+          extendedProperties: {
+            private: {
+              source: 'androlog',
+              type: 'scheduled_pin',
+              ymd: selectedCalDateStr,
+              doseMg: String(doseMg),
+              site: targetSite
+            }
+          }
+        };
+
+        const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${cachedAccessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || 'Failed to create calendar event.');
+        }
+
+        showToast(`Scheduled TRT pin for ${selectedCalDateStr} on Google Calendar!`, 'success');
+        await fetchGoogleCalendarEvents();
+      } catch (err) {
+        console.error('Schedule pin error:', err);
+        showToast('Failed to schedule event: ' + err.message, 'error');
+      }
+    }
+
+    // Auto-record completed pin to Google Calendar
+    async function logCompletedPinToGoogleCalendar(doseMg, site, dateObj, dateText) {
+      if (!cachedAccessToken) return;
+      try {
+        const calId = await getGoogleCalendarId();
+        const cfg = getConfig();
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const startDt = dateObj;
+        const endDt = new Date(startDt.getTime() + 15 * 60 * 1000);
+        const conc = cfg.concentration || 200;
+        const volMl = (doseMg / conc).toFixed(2);
+
+        const payload = {
+          summary: `✅ TRT Injected: ${doseMg}mg ${cfg.compound || 'Test Cyp'} (${site})`,
+          description: `Completed TRT Depot:\n• Dose: ${doseMg} mg (${volMl} mL)\n• Compound: ${cfg.compound || 'Testosterone Cypionate'}\n• Injection Site: ${site}\n• Timestamp: ${dateText}\n• Remaining Vial: ${cfg.vialVolume.toFixed(2)} mL\n\nLogged in AndroLog TRT Tracker`,
+          start: {
+            dateTime: startDt.toISOString(),
+            timeZone: tz
+          },
+          end: {
+            dateTime: endDt.toISOString(),
+            timeZone: tz
+          },
+          extendedProperties: {
+            private: {
+              source: 'androlog',
+              type: 'completed_pin',
+              doseMg: String(doseMg),
+              site: site
+            }
+          }
+        };
+
+        await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${cachedAccessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        fetchGoogleCalendarEvents();
+      } catch (err) {
+        console.warn('Auto-calendar pin log error:', err);
+      }
+    }
+
+    // Mandatory User Confirmation for deleting single Google Calendar event
+    function confirmDeleteGoogleCalendarEvent(eventId, eventSummary) {
+      showConfirmDialog({
+        title: 'Delete from Google Calendar',
+        subtitle: eventSummary,
+        message: `Are you sure you want to delete this event from your Google Calendar?`,
+        confirmText: 'Delete Event',
+        isDanger: true,
+        onConfirm: async () => {
+          try {
+            const calId = await getGoogleCalendarId();
+            const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(eventId)}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${cachedAccessToken}` }
+            });
+            if (!res.ok && res.status !== 204) {
+              throw new Error('Failed to delete event from Google Calendar.');
+            }
+            showToast('Event removed from Google Calendar.', 'success');
+            await fetchGoogleCalendarEvents();
+          } catch (err) {
+            console.error('Delete calendar event error:', err);
+            showToast('Failed to delete event: ' + err.message, 'error');
+          }
+        }
+      });
+    }
+
+    // Mandatory User Confirmation for clearing scheduled TRT events
+    function confirmClearGoogleCalendarSchedule() {
+      if (!cachedAccessToken) {
+        showToast('Please sign in to Google first.', 'error');
+        return;
+      }
+
+      showConfirmDialog({
+        title: 'Clear Google Calendar TRT Events',
+        subtitle: 'Scheduled Pin Reminders',
+        message: 'This will search and delete all upcoming AndroLog scheduled pin reminder events from your Google Calendar. Your local dose history and protocol will remain intact.',
+        confirmText: 'Clear Scheduled Events',
+        isDanger: true,
+        onConfirm: async () => {
+          try {
+            showToast('Searching for scheduled events to delete...', 'info');
+            const calId = await getGoogleCalendarId();
+            const now = new Date();
+            const timeMin = now.toISOString();
+
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${encodeURIComponent(timeMin)}&singleEvents=true`;
+            const listRes = await fetch(url, {
+              headers: { Authorization: `Bearer ${cachedAccessToken}` }
+            });
+            if (!listRes.ok) throw new Error('Could not fetch events from Google Calendar.');
+            const listData = await listRes.json();
+            const events = listData.items || [];
+
+            const toDelete = events.filter(e => {
+              const s = e.summary || '';
+              return s.startsWith('💉 AndroLog TRT') || e.extendedProperties?.private?.type === 'scheduled_pin';
+            });
+
+            if (toDelete.length === 0) {
+              showToast('No upcoming scheduled TRT events found on Google Calendar.', 'info');
+              return;
+            }
+
+            for (const ev of toDelete) {
+              await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(ev.id)}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${cachedAccessToken}` }
+              });
+            }
+
+            showToast(`Deleted ${toDelete.length} scheduled TRT events from Google Calendar.`, 'success');
+            await fetchGoogleCalendarEvents();
+          } catch (err) {
+            console.error('Clear calendar error:', err);
+            showToast('Error clearing calendar: ' + err.message, 'error');
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
     // Window Scope Exports for Inline Handlers
     // ----------------------------------------------------
     window.switchTab = switchTab;
@@ -2197,6 +2927,17 @@
     window.confirmRestoreDriveBackup = confirmRestoreDriveBackup;
     window.confirmDeleteDriveBackup = confirmDeleteDriveBackup;
     window.toggleAutoSync = toggleAutoSync;
+    window.getCalTargetPreference = getCalTargetPreference;
+    window.updateCalTargetPreference = updateCalTargetPreference;
+    window.getCalReminderTime = getCalReminderTime;
+    window.updateCalTimePreference = updateCalTimePreference;
+    window.isCalAutoLogEnabled = isCalAutoLogEnabled;
+    window.toggleCalAutoLog = toggleCalAutoLog;
+    window.fetchGoogleCalendarEvents = fetchGoogleCalendarEvents;
+    window.syncUpcomingScheduleToGoogleCalendar = syncUpcomingScheduleToGoogleCalendar;
+    window.schedulePinOnSelectedDateToGoogleCalendar = schedulePinOnSelectedDateToGoogleCalendar;
+    window.confirmDeleteGoogleCalendarEvent = confirmDeleteGoogleCalendarEvent;
+    window.confirmClearGoogleCalendarSchedule = confirmClearGoogleCalendarSchedule;
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {
