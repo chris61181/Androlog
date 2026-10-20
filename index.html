@@ -1929,6 +1929,12 @@
             if (credential?.accessToken) {
               cachedAccessToken = credential.accessToken;
               currentUser = redirectResult.user;
+              localStorage.setItem('androlog_google_token', cachedAccessToken);
+              localStorage.setItem('androlog_google_user', JSON.stringify({
+                displayName: currentUser.displayName,
+                email: currentUser.email,
+                photoURL: currentUser.photoURL
+              }));
               updateGoogleUIState();
               showToast(`Connected to Google as ${currentUser.email}!`, 'success');
               loadDriveBackupsList();
@@ -1937,28 +1943,54 @@
           }
         } catch (redirectErr) {
           console.warn('Redirect sign-in resolution:', redirectErr);
-          if (redirectErr.code && redirectErr.code !== 'auth/null-user') {
+          // Ignore null-user and missing-initial-state on initial app boot
+          if (
+            redirectErr.code &&
+            redirectErr.code !== 'auth/null-user' &&
+            redirectErr.code !== 'auth/missing-initial-state'
+          ) {
             handleAuthError(redirectErr);
+          }
+        }
+
+        // Restore saved Google session from localStorage if present
+        const savedToken = localStorage.getItem('androlog_google_token');
+        const savedUserJson = localStorage.getItem('androlog_google_user');
+        if (savedToken && savedUserJson && !cachedAccessToken) {
+          try {
+            cachedAccessToken = savedToken;
+            currentUser = JSON.parse(savedUserJson);
+            updateGoogleUIState();
+            loadDriveBackupsList();
+            fetchGoogleCalendarEvents();
+          } catch (e) {
+            console.warn('Failed restoring saved session:', e);
           }
         }
 
         // Listen for authentication changes
         onAuthStateChanged(auth, async (user) => {
-          currentUser = user;
           if (user) {
+            currentUser = user;
+            if (!cachedAccessToken) {
+              cachedAccessToken = localStorage.getItem('androlog_google_token');
+            }
             updateGoogleUIState();
             if (cachedAccessToken) {
               loadDriveBackupsList();
               fetchGoogleCalendarEvents();
             }
           } else {
-            cachedAccessToken = null;
-            currentUser = null;
-            cachedDriveFolderId = null;
-            cachedCalendarId = null;
-            googleCalEventsByDate = {};
-            updateGoogleUIState();
-            renderCalendar();
+            // If neither firebase auth nor local token exist, clear session
+            if (!localStorage.getItem('androlog_google_token')) {
+              cachedAccessToken = null;
+              currentUser = null;
+              cachedDriveFolderId = null;
+              cachedCalendarId = null;
+              googleCalEventsByDate = {};
+              updateGoogleUIState();
+              renderCalendar();
+            }
           }
         });
       } catch (err) {
@@ -2076,6 +2108,12 @@
 
           cachedAccessToken = credential.accessToken;
           currentUser = result.user;
+          localStorage.setItem('androlog_google_token', cachedAccessToken);
+          localStorage.setItem('androlog_google_user', JSON.stringify({
+            displayName: currentUser.displayName,
+            email: currentUser.email,
+            photoURL: currentUser.photoURL
+          }));
           updateGoogleUIState();
           showToast(`Connected to Google as ${currentUser.email}!`, 'success');
           await loadDriveBackupsList();
@@ -2084,10 +2122,9 @@
           console.warn('Popup login attempt:', popupErr);
           if (
             popupErr.code === 'auth/popup-blocked' ||
-            popupErr.code === 'auth/operation-not-supported-in-this-environment' ||
-            isNative
+            popupErr.code === 'auth/operation-not-supported-in-this-environment'
           ) {
-            showToast('Popup blocked or mobile webview. Switching to direct redirect...', 'info');
+            showToast('Popup blocked by browser. Switching to direct redirect...', 'info');
             await signInWithRedirect(auth, provider);
             return;
           }
@@ -2128,6 +2165,10 @@
       if (code === 'auth/cancelled-popup-request') {
         return;
       }
+      if (code === 'auth/missing-initial-state') {
+        showToast('Auth session timed out. Please tap Connect again.', 'info');
+        return;
+      }
       if (code === 'auth/unauthorized-domain') {
         showAuthDomainHelp(window.location.hostname);
         return;
@@ -2155,26 +2196,41 @@
       const body = document.getElementById('auth-help-body');
       const actions = document.getElementById('auth-help-actions');
 
-      title.innerText = 'Authorized Domain Needed';
+      title.innerText = 'One-Time Setup: Authorize Domain';
       subtitle.innerText = 'Firebase Authentication Security';
       body.innerHTML = `
-        <p>Google requires authorizing your domain before allowing logins for project <span class="font-mono text-brand-cyan">trt-tracker-1b1a6</span>.</p>
+        <p class="text-xs text-slate-200">
+          Google requires a 1-time authorization of the app's internal domain (<span class="font-mono text-brand-cyan font-bold">${domain}</span>) in your Firebase project.
+        </p>
+
         <div class="bg-brand-surface p-3 rounded-xl border border-brand-border space-y-1.5">
-          <span class="text-[10px] uppercase font-bold text-brand-muted block">Your Current Domain</span>
+          <div class="flex items-center justify-between text-[10px] text-brand-muted font-bold uppercase tracking-wider">
+            <span>Domain to Authorize</span>
+            <span class="text-emerald-400">Ready to copy</span>
+          </div>
           <div class="flex items-center justify-between gap-2">
-            <span class="font-mono text-xs text-white font-semibold select-all break-all" id="auth-domain-text">${domain}</span>
-            <button onclick="copyCurrentDomain('${domain}')" class="px-2.5 py-1 bg-brand-card hover:bg-brand-border text-brand-cyan font-bold rounded-lg border border-brand-border text-[11px] shrink-0">
+            <span class="font-mono text-xs text-white font-semibold select-all" id="auth-domain-text">${domain}</span>
+            <button onclick="copyCurrentDomain('${domain}')" class="px-2.5 py-1 bg-brand-card hover:bg-brand-border text-brand-cyan font-bold rounded-lg border border-brand-border text-[11px] shrink-0 active:scale-95 transition">
               Copy
             </button>
           </div>
         </div>
-        <p class="text-[11px] text-slate-300">
-          To enable logins: In Firebase Console → Authentication → Settings → Authorized Domains, add this domain.
-        </p>
+
+        <div class="text-[11px] text-slate-300 space-y-1 bg-brand-surface/40 p-2.5 rounded-xl border border-brand-border/60">
+          <p class="font-semibold text-white">How to fix (takes 30 seconds):</p>
+          <ol class="list-decimal list-inside space-y-0.5 text-slate-300">
+            <li>Go to Firebase Console Settings</li>
+            <li>Under <strong>Authorized domains</strong>, click <strong>Add domain</strong></li>
+            <li>Enter <code class="text-brand-cyan font-mono">${domain}</code> and click <strong>Done</strong></li>
+          </ol>
+        </div>
       `;
       actions.innerHTML = `
-        <button onclick="closeAuthHelpModal()" class="w-full bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
-          Understood
+        <a href="https://console.firebase.google.com/project/trt-tracker-1b1a6/authentication/settings" target="_blank" rel="noopener noreferrer" class="flex-1 text-center bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+          Open Firebase Console
+        </a>
+        <button onclick="closeAuthHelpModal()" class="bg-brand-surface hover:bg-brand-card text-brand-muted font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
+          Close
         </button>
       `;
       modal.classList.remove('hidden');
@@ -2247,6 +2303,8 @@
         cachedDriveFolderId = null;
         cachedCalendarId = null;
         googleCalEventsByDate = {};
+        localStorage.removeItem('androlog_google_token');
+        localStorage.removeItem('androlog_google_user');
         updateGoogleUIState();
         renderCalendar();
         showToast('Signed out of Google account.', 'info');

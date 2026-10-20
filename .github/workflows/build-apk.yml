@@ -52,12 +52,20 @@ jobs:
           cat << 'EOF' > android/app/src/main/java/com/coyle/androlog/MainActivity.java
           package com.coyle.androlog;
 
+          import android.app.Dialog;
           import android.os.Bundle;
+          import android.os.Message;
+          import android.view.ViewGroup;
+          import android.webkit.CookieManager;
+          import android.webkit.WebChromeClient;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import com.getcapacitor.BridgeActivity;
+          import com.getcapacitor.BridgeWebChromeClient;
 
           public class MainActivity extends BridgeActivity {
+              private Dialog authDialog;
+
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
@@ -70,10 +78,67 @@ jobs:
                               settings.setSupportMultipleWindows(true);
                               settings.setJavaScriptCanOpenWindowsAutomatically(true);
                               settings.setDomStorageEnabled(true);
+                              settings.setDatabaseEnabled(true);
+
+                              // Enable cookies & third-party cookies across localhost and firebaseapp.com
+                              CookieManager cookieManager = CookieManager.getInstance();
+                              cookieManager.setAcceptCookie(true);
+                              cookieManager.setAcceptThirdPartyCookies(webView, true);
+
+                              // Clean User Agent to avoid Google's "403 disallowed_useragent"
                               String ua = settings.getUserAgentString();
                               if (ua != null && ua.contains("; wv")) {
                                   settings.setUserAgentString(ua.replace("; wv", ""));
                               }
+
+                              // Handle OAuth popups seamlessly inside an overlay Dialog
+                              webView.setWebChromeClient(new BridgeWebChromeClient(this.bridge) {
+                                  @Override
+                                  public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                                      try {
+                                          WebView popupWebView = new WebView(MainActivity.this);
+                                          WebSettings popupSettings = popupWebView.getSettings();
+                                          popupSettings.setJavaScriptEnabled(true);
+                                          popupSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+                                          popupSettings.setDomStorageEnabled(true);
+                                          popupSettings.setDatabaseEnabled(true);
+                                          popupSettings.setSupportMultipleWindows(true);
+
+                                          String popupUa = popupSettings.getUserAgentString();
+                                          if (popupUa != null && popupUa.contains("; wv")) {
+                                              popupSettings.setUserAgentString(popupUa.replace("; wv", ""));
+                                          }
+
+                                          CookieManager.getInstance().setAcceptCookie(true);
+                                          CookieManager.getInstance().setAcceptThirdPartyCookies(popupWebView, true);
+
+                                          authDialog = new Dialog(MainActivity.this, android.R.style.Theme_DeviceDefault_NoActionBar);
+                                          authDialog.setContentView(popupWebView);
+                                          if (authDialog.getWindow() != null) {
+                                              authDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                                          }
+                                          authDialog.show();
+
+                                          popupWebView.setWebChromeClient(new WebChromeClient() {
+                                              @Override
+                                              public void onCloseWindow(WebView window) {
+                                                  try {
+                                                      if (authDialog != null && authDialog.isShowing()) {
+                                                          authDialog.dismiss();
+                                                      }
+                                                  } catch (Exception ignored) {}
+                                              }
+                                          });
+
+                                          WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                                          transport.setWebView(popupWebView);
+                                          resultMsg.sendToTarget();
+                                          return true;
+                                      } catch (Exception e) {
+                                          return false;
+                                      }
+                                  }
+                              });
                           }
                       }
                   } catch (Exception ignored) {}
