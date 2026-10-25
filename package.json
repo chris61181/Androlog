@@ -1,6 +1,6 @@
 {
   "name": "androlog",
-  "version": "1.0.0",
+  "version": "2.4.0",
   "type": "module",
   "scripts": {
     "dev": "node server.js",
@@ -9,6 +9,7 @@
     "lint": "node -c server.js"
   },
   "dependencies": {
+    "@google/genai": "^2.31.0",
     "express": "^4.21.1"
   }
 }

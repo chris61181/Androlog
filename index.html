@@ -102,7 +102,10 @@
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-lg bg-brand-cyan/15 border border-brand-cyan/40 flex items-center justify-center text-brand-cyan font-bold text-lg">▲</div>
       <div>
-        <h1 class="text-base font-bold leading-none tracking-tight text-white">AndroLog</h1>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold leading-none tracking-tight text-white">AndroLog</h1>
+          <span id="header-version-badge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">v2.4.0</span>
+        </div>
         <p class="text-[11px] text-brand-muted mt-0.5" id="header-subtitle">GameDay Men's Health • AccessLabs</p>
       </div>
     </div>
@@ -318,6 +321,18 @@
         <div id="lab-chart-container" class="w-full h-36 pt-2"></div>
       </div>
 
+      <!-- Dosage (mg/week) Over Time Line Chart -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="font-bold text-white text-sm">Protocol Dosage Over Time (mg/week)</h3>
+            <p class="text-[11px] text-brand-muted">Weekly Dose Titration (Amber) • Biomarker Correlation</p>
+          </div>
+          <span class="text-[10px] font-bold bg-amber-500/15 px-2 py-1 rounded border border-amber-500/30 text-amber-400" id="lab-dose-badge">120 mg/wk</span>
+        </div>
+        <div id="lab-dose-chart-container" class="w-full h-32 pt-2"></div>
+      </div>
+
       <!-- Lab Panel Selector Pills -->
       <div id="lab-date-pills" class="flex gap-2 overflow-x-auto pb-1 no-scrollbar"></div>
 
@@ -325,7 +340,10 @@
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-cyan" id="disp-lab-provider">AccessLabs • GameDay</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-cyan" id="disp-lab-provider">AccessLabs • GameDay</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30" id="disp-lab-dose-pill">120 mg/wk</span>
+            </div>
             <h3 class="font-bold text-white text-base mt-0.5" id="disp-lab-date">09/03/2026</h3>
           </div>
           <button onclick="deleteSelectedLabPanel()" class="text-xs text-brand-muted hover:text-red-400 flex items-center gap-1">
@@ -367,6 +385,60 @@
         </div>
       </div>
 
+      <!-- TRT & Biomarker Protocol AI Assistant Card -->
+      <div id="lab-ai-card" class="bg-brand-card border border-brand-cyan/30 rounded-2xl p-4 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
+              <span class="material-symbols-outlined text-lg">neurology</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 class="font-bold text-white text-sm">TRT & Lab Protocol Assistant</h3>
+                <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">Gemini</span>
+              </div>
+              <p class="text-[11px] text-brand-muted">Synced with your dose logs & AccessLabs panels</p>
+            </div>
+          </div>
+          <button onclick="clearChatHistory()" class="text-[11px] text-brand-muted hover:text-red-400 px-2 py-1 rounded-lg bg-brand-surface border border-brand-border transition flex items-center gap-1" title="Reset conversation">
+            <span class="material-symbols-outlined text-xs">restart_alt</span> Clear
+          </button>
+        </div>
+
+        <!-- Quick Analysis Prompts -->
+        <div class="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+          <button onclick="askQuickPrompt('Correlate my dosage change from 100mg to 120mg/wk with my Total T and E2 trough numbers.')" class="shrink-0 text-[11px] font-semibold bg-brand-surface hover:bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 px-2.5 py-1.5 rounded-xl transition">
+            📈 100mg → 120mg Correlation
+          </button>
+          <button onclick="askQuickPrompt('Analyze my latest T:E2 ratio and sensitive Estradiol on my No-AI protocol.')" class="shrink-0 text-[11px] font-semibold bg-brand-surface hover:bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 px-2.5 py-1.5 rounded-xl transition">
+            ⚖️ Analyze T:E2 Ratio
+          </button>
+          <button onclick="askQuickPrompt('Summarize my PSA trend and key questions for my next GameDay Men\\'s Health check-in.')" class="shrink-0 text-[11px] font-semibold bg-brand-surface hover:bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 px-2.5 py-1.5 rounded-xl transition">
+            🩺 Next Clinic Check-In
+          </button>
+        </div>
+
+        <!-- Scrollable Multi-Turn Message Thread -->
+        <div id="chat-messages" class="bg-brand-surface/80 border border-brand-border rounded-xl p-3 max-h-72 overflow-y-auto space-y-2.5 text-xs"></div>
+
+        <!-- Chat Input Bar -->
+        <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+          <input
+            type="text"
+            id="chat-input"
+            placeholder="Ask about your labs, T:E2 ratio, or dosage..."
+            class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:border-brand-cyan"
+          >
+          <button
+            type="submit"
+            id="chat-send-btn"
+            class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-center transition shrink-0"
+          >
+            <span class="material-symbols-outlined text-base">send</span>
+          </button>
+        </form>
+      </div>
+
       <!-- Log New Lab Panel Card -->
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-3">
         <h3 class="font-bold text-white text-sm flex items-center gap-2">
@@ -404,6 +476,10 @@
           <div>
             <label class="text-brand-muted block mb-1">SHBG nmol/L (Opt)</label>
             <input type="number" step="0.1" id="new-lab-shbg" placeholder="e.g. 47" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div class="col-span-2">
+            <label class="text-brand-muted block mb-1">Weekly Dose at Draw (mg/week)</label>
+            <input type="number" step="5" id="new-lab-dose" placeholder="e.g. 120 (0 for pre-TRT baseline)" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-amber-400 font-bold">
           </div>
         </div>
         <div>
@@ -653,6 +729,11 @@
           <span class="material-symbols-outlined text-base">delete_sweep</span> Clear All Logged Doses
         </button>
       </div>
+
+      <!-- App Version & Revision Footer -->
+      <div class="text-center py-2 text-[11px] text-brand-muted font-mono">
+        <span id="settings-version-text">AndroLog v2.4.0 • Precision TRT Protocol</span>
+      </div>
     </div>
 
   </main>
@@ -787,6 +868,8 @@
       signOut 
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
+    const APP_VERSION = '2.4.0';
+
     // Defaulting directly to your Left & Right Deltoid rotation
     const DEFAULT_SITES = [
       'Right Deltoid',
@@ -807,6 +890,7 @@
       {
         date: '2026-09-03',
         provider: "AccessLabs • GameDay Men's Health",
+        weeklyDose: 120,
         totalT: 959,
         freeT: null,
         freeTUnit: 'ng/dL',
@@ -819,6 +903,7 @@
       {
         date: '2026-06-23',
         provider: "AccessLabs • GameDay Men's Health",
+        weeklyDose: 100,
         totalT: 295,
         freeT: null,
         freeTUnit: 'ng/dL',
@@ -826,11 +911,12 @@
         psa: 0.916,
         hct: null,
         shbg: null,
-        notes: 'Trough (No AI) • Titrating dose upward toward ~1000 goal'
+        notes: 'Trough (No AI) • 100mg/wk • Titrating dose upward toward ~1000 goal'
       },
       {
         date: '2026-05-13',
         provider: "AccessLabs • GameDay Men's Health",
+        weeklyDose: 100,
         totalT: 575,
         freeT: 10.0,
         freeTUnit: 'ng/dL (Ref 5.7–17.9)',
@@ -838,11 +924,12 @@
         psa: 0.949,
         hct: null,
         shbg: 47,
-        notes: 'Trough (No AI) • LH 6.9, FSH 6.2, Prolactin 17.6, TSH 1.78, eGFR 125'
+        notes: 'Trough (No AI) • 100mg/wk • LH 6.9, FSH 6.2, Prolactin 17.6, TSH 1.78, eGFR 125'
       },
       {
         date: '2026-04-11',
         provider: 'Labcorp • CRS Urology (A. Coccia)',
+        weeklyDose: 0,
         totalT: 341.2,
         freeT: 7.8,
         freeTUnit: 'pg/mL (Ref 6.8–21.5)',
@@ -850,11 +937,12 @@
         psa: null,
         hct: null,
         shbg: null,
-        notes: 'Baseline Trough (LC/MS-MS) • LH 7.2, FSH 8.6, Prolactin 7.3'
+        notes: 'Baseline Trough (LC/MS-MS) • Pre-TRT (0mg/wk) • LH 7.2, FSH 8.6, Prolactin 7.3'
       },
       {
         date: '2026-03-19',
         provider: 'Labcorp • Winslow Primary Care',
+        weeklyDose: 0,
         totalT: 344,
         freeT: 6.2,
         freeTUnit: 'pg/mL (Low < 6.8)',
@@ -862,7 +950,7 @@
         psa: 0.900,
         hct: 43.9,
         shbg: null,
-        notes: 'Baseline Trough • Hgb 15.0, A1c 5.3%, B12 622, TSH 2.68, eGFR 113'
+        notes: 'Baseline Trough • Pre-TRT (0mg/wk) • Hgb 15.0, A1c 5.3%, B12 622, TSH 2.68, eGFR 113'
       }
     ];
 
@@ -1206,8 +1294,13 @@
 
       const current = labs[selectedLabIdx];
       if (current) {
+        const panelDose = resolveLabWeeklyDose(current);
         document.getElementById('disp-lab-provider').innerText = current.provider || 'AccessLabs';
         document.getElementById('disp-lab-date').innerText = `${current.date} (Trough)`;
+        const dosePill = document.getElementById('disp-lab-dose-pill');
+        if (dosePill) {
+          dosePill.innerText = panelDose > 0 ? `${panelDose} mg/wk` : 'Baseline (0 mg/wk)';
+        }
 
         // Total T
         document.getElementById('disp-lab-tot-t').innerHTML = current.totalT
@@ -1268,6 +1361,37 @@
       }
 
       renderLabChart(labs);
+      renderDosageChart(labs);
+    }
+
+    function resolveLabWeeklyDose(panel) {
+      if (panel.weeklyDose !== undefined && panel.weeklyDose !== null && !isNaN(panel.weeklyDose)) {
+        return Number(panel.weeklyDose);
+      }
+      const notes = panel.notes || '';
+      const match = notes.match(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*w(?:ee)?k/i);
+      if (match) {
+        return parseFloat(match[1]);
+      }
+      if (/baseline|pre-trt/i.test(notes) || panel.date === '2026-03-19' || panel.date === '2026-04-11') {
+        return 0;
+      }
+      if (panel.date === '2026-05-13' || panel.date === '2026-06-23') {
+        return 100;
+      }
+      // Check logged pins within 14 days prior to the lab draw
+      const history = getHistory();
+      if (history.length > 0 && panel.date) {
+        const drawEnd = new Date(panel.date + 'T23:59:59').getTime();
+        const windowStart = drawEnd - 14 * 24 * 60 * 60 * 1000;
+        const pinsInWindow = history.filter(h => h.timestamp >= windowStart && h.timestamp <= drawEnd);
+        if (pinsInWindow.length > 0) {
+          const totalMg = pinsInWindow.reduce((sum, h) => sum + (parseFloat(h.dose) || 0), 0);
+          return Math.round(totalMg / 2);
+        }
+      }
+      const cfg = getConfig();
+      return parseFloat(cfg.weeklyDose) || 120;
     }
 
     function renderLabChart(labs) {
@@ -1318,6 +1442,91 @@
       `;
     }
 
+    function renderDosageChart(labs) {
+      const container = document.getElementById('lab-dose-chart-container');
+      if (!container) return;
+
+      const cfg = getConfig();
+      const targetWeekly = parseFloat(cfg.weeklyDose) || 120;
+      const badgeEl = document.getElementById('lab-dose-badge');
+      if (badgeEl) {
+        badgeEl.innerText = `${targetWeekly} mg/wk`;
+      }
+
+      const chronological = [...labs].reverse().map(p => ({
+        date: p.date,
+        shortDate: p.date ? p.date.slice(5) : '',
+        dose: resolveLabWeeklyDose(p),
+        totalT: p.totalT
+      }));
+
+      // If user has logged pins more recently than the last lab draw, append a "Now" point
+      const history = getHistory();
+      if (history.length > 0 && chronological.length > 0) {
+        const lastLabDate = chronological[chronological.length - 1].date;
+        const latestPinDate = toLocalYMD(history[0].timestamp);
+        if (latestPinDate > lastLabDate) {
+          const nowMs = Date.now();
+          const twoWksAgo = nowMs - 14 * 24 * 60 * 60 * 1000;
+          const recentPins = history.filter(h => h.timestamp >= twoWksAgo);
+          const rollingWeekly = recentPins.length >= 2
+            ? Math.round(recentPins.reduce((s, h) => s + (parseFloat(h.dose) || 0), 0) / 2)
+            : targetWeekly;
+          chronological.push({
+            date: latestPinDate,
+            shortDate: 'Now',
+            dose: rollingWeekly,
+            totalT: null
+          });
+        }
+      }
+
+      if (chronological.length < 2) {
+        container.innerHTML = `<p class="text-xs text-brand-muted text-center pt-8">Add at least 2 panels to view dosage progression.</p>`;
+        return;
+      }
+
+      const w = 320, h = 110, padX = 28, padY = 20;
+      const maxDose = Math.max(160, targetWeekly + 20, ...chronological.map(d => d.dose + 20));
+      const stepX = (w - padX * 2) / (chronological.length - 1);
+      const yTarget = h - padY - (targetWeekly / maxDose) * (h - padY * 2);
+
+      let dosePoints = [];
+      let areaPoints = [`${padX},${h - padY}`];
+      let dots = '';
+      let labels = '';
+
+      chronological.forEach((d, i) => {
+        const x = padX + i * stepX;
+        const y = h - padY - (d.dose / maxDose) * (h - padY * 2);
+        dosePoints.push(`${x},${y}`);
+        areaPoints.push(`${x},${y}`);
+
+        dots += `<circle cx="${x}" cy="${y}" r="3.5" fill="#f59e0b" stroke="#051424" stroke-width="1.2" />`;
+        dots += `<text x="${x}" y="${y - 7}" fill="#fbbf24" font-size="8.5" font-weight="bold" text-anchor="middle">${d.dose}mg</text>`;
+        labels += `<text x="${x}" y="${h - 3}" fill="#7e9cb8" font-size="9" text-anchor="middle">${d.shortDate}</text>`;
+      });
+
+      areaPoints.push(`${padX + (chronological.length - 1) * stepX},${h - padY}`);
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
+          <defs>
+            <linearGradient id="doseAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25" />
+              <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0" />
+            </linearGradient>
+          </defs>
+          <line x1="${padX}" y1="${yTarget}" x2="${w - padX}" y2="${yTarget}" stroke="#1f344d" stroke-width="1" stroke-dasharray="4,4" />
+          <text x="${w - padX}" y="${yTarget - 3}" fill="#7e9cb8" font-size="7.5" text-anchor="end">${targetWeekly}mg Protocol</text>
+          <polygon points="${areaPoints.join(' ')}" fill="url(#doseAreaGrad)" />
+          <polyline fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="${dosePoints.join(' ')}" />
+          ${dots}
+          ${labels}
+        </svg>
+      `;
+    }
+
     function addLabPanel() {
       const date = document.getElementById('new-lab-date').value;
       const provider = document.getElementById('new-lab-provider').value.trim() || 'AccessLabs';
@@ -1332,12 +1541,15 @@
       const psaVal = parseFloat(document.getElementById('new-lab-psa').value);
       const hctVal = parseFloat(document.getElementById('new-lab-hct').value);
       const shbgVal = parseFloat(document.getElementById('new-lab-shbg').value);
+      const doseVal = parseFloat(document.getElementById('new-lab-dose')?.value);
       const notes = document.getElementById('new-lab-notes').value.trim();
+      const cfg = getConfig();
 
       const labs = getLabs();
       labs.push({
         date,
         provider,
+        weeklyDose: isNaN(doseVal) ? (parseFloat(cfg.weeklyDose) || 120) : doseVal,
         totalT,
         e2: isNaN(e2Val) ? null : e2Val,
         freeT: isNaN(freeVal) ? null : freeVal,
@@ -1801,7 +2013,7 @@
     function exportData() {
       const payload = {
         app: "AndroLog",
-        version: "1.0",
+        version: APP_VERSION,
         exportedAt: new Date().toISOString(),
         config: getConfig(),
         sites: getSites(),
@@ -2440,7 +2652,7 @@
       try {
         const payload = {
           app: "AndroLog",
-          version: "1.0",
+          version: APP_VERSION,
           exportedAt: new Date().toISOString(),
           config: getConfig(),
           sites: getSites(),
@@ -2472,7 +2684,7 @@
       try {
         const payload = {
           app: "AndroLog",
-          version: "1.0",
+          version: APP_VERSION,
           exportedAt: new Date().toISOString(),
           config: getConfig(),
           sites: getSites(),
@@ -2699,7 +2911,7 @@
       return localStorage.getItem('androlog_cal_auto_sync') === 'true';
     }
 
-    function toggleCalAutoLog(event) {
+    function toggleCalAutoSync(event) {
       localStorage.setItem('androlog_cal_auto_sync', event.target.checked ? 'true' : 'false');
       if (event.target.checked) {
         showToast('Auto-sync enabled: logged pins will post to Google Calendar.', 'success');
@@ -2707,6 +2919,7 @@
         showToast('Calendar auto-sync disabled.', 'info');
       }
     }
+    const toggleCalAutoLog = toggleCalAutoSync;
 
     // Resolve or create target calendar ID
     async function getGoogleCalendarId() {
@@ -3159,6 +3372,162 @@
     }
 
     // ----------------------------------------------------
+    // TRT & Biomarker Multi-Turn Gemini Chatbot
+    // ----------------------------------------------------
+    const CHAT_STORAGE_KEY = 'androlog_chat_history';
+    let isChatLoading = false;
+
+    function getChatHistory() {
+      try {
+        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+      return [
+        {
+          role: 'model',
+          text: "Ready to analyze your protocol and bloodwork. I have context on your **120mg/wk** (60mg Thu & Sun) Testosterone Cypionate schedule and your 2026 AccessLabs trough panels (latest **959 ng/dL Total T**, **26.0 pg/mL E2**). Ask me anything about your dosage correlation or biomarkers."
+        }
+      ];
+    }
+
+    function saveChatHistory(messages) {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-24)));
+    }
+
+    function formatChatMarkdown(text) {
+      const escaped = String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      return escaped
+        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em class="text-sky-200">$1</em>')
+        .replace(/\n/g, '<br>');
+    }
+
+    function renderChatMessages() {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+      const messages = getChatHistory();
+      container.innerHTML = '';
+
+      messages.forEach(msg => {
+        const isUser = msg.role === 'user';
+        const wrapper = document.createElement('div');
+        wrapper.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+
+        const bubble = document.createElement('div');
+        bubble.className = isUser
+          ? 'max-w-[85%] bg-brand-cyan text-brand-dark font-semibold px-3 py-2 rounded-2xl rounded-br-sm leading-relaxed'
+          : 'max-w-[92%] bg-brand-card border border-brand-border text-slate-200 px-3 py-2.5 rounded-2xl rounded-bl-sm leading-relaxed';
+
+        bubble.innerHTML = isUser
+          ? String(msg.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          : formatChatMarkdown(msg.text);
+
+        wrapper.appendChild(bubble);
+        container.appendChild(wrapper);
+      });
+
+      if (isChatLoading) {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'flex justify-start';
+        loadingDiv.innerHTML = `
+          <div class="bg-brand-card border border-brand-border text-brand-cyan px-3 py-2 rounded-2xl rounded-bl-sm flex items-center gap-2 text-[11px] font-semibold">
+            <span class="w-2 h-2 rounded-full bg-brand-cyan animate-ping"></span>
+            Analyzing protocol & biomarkers...
+          </div>
+        `;
+        container.appendChild(loadingDiv);
+      }
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function buildChatContextData() {
+      const cfg = getConfig();
+      const labs = getLabs().map(p => ({
+        ...p,
+        resolvedWeeklyDoseMg: resolveLabWeeklyDose(p),
+        tToE2Ratio: (p.totalT && p.e2) ? Number((p.totalT / p.e2).toFixed(1)) : null
+      }));
+      const recentDoses = getHistory().slice(0, 12);
+      return {
+        protocolConfig: cfg,
+        labPanelsChronological: [...labs].reverse(),
+        recentInjections: recentDoses
+      };
+    }
+
+    async function sendChatMessage(event, presetPrompt) {
+      if (event && event.preventDefault) event.preventDefault();
+      if (isChatLoading) return;
+
+      const inputEl = document.getElementById('chat-input');
+      const userText = (presetPrompt !== undefined ? presetPrompt : (inputEl ? inputEl.value : '')).trim();
+      if (!userText) return;
+
+      if (inputEl && presetPrompt === undefined) {
+        inputEl.value = '';
+      }
+
+      const history = getChatHistory();
+      history.push({ role: 'user', text: userText });
+      saveChatHistory(history);
+
+      isChatLoading = true;
+      const sendBtn = document.getElementById('chat-send-btn');
+      if (sendBtn) sendBtn.disabled = true;
+      renderChatMessages();
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: history,
+            contextData: buildChatContextData()
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || `Server returned ${res.status}`);
+        }
+
+        history.push({
+          role: 'model',
+          text: data.reply || 'No response received.'
+        });
+        saveChatHistory(history);
+      } catch (err) {
+        console.error('Chat error:', err);
+        history.push({
+          role: 'model',
+          text: `Unable to reach the cloud assistant right now (${err.message || 'offline'}). Your local protocol & lab charts remain fully available.`
+        });
+        saveChatHistory(history);
+      } finally {
+        isChatLoading = false;
+        if (sendBtn) sendBtn.disabled = false;
+        renderChatMessages();
+      }
+    }
+
+    function askQuickPrompt(promptText) {
+      sendChatMessage(null, promptText);
+    }
+
+    function clearChatHistory() {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+      renderChatMessages();
+      showToast('Assistant conversation reset.', 'info');
+    }
+
+    // ----------------------------------------------------
     // Window Scope Exports for Inline Handlers
     // ----------------------------------------------------
     window.switchTab = switchTab;
@@ -3196,6 +3565,7 @@
     window.updateCalTimePreference = updateCalTimePreference;
     window.isCalAutoLogEnabled = isCalAutoLogEnabled;
     window.toggleCalAutoLog = toggleCalAutoLog;
+    window.toggleCalAutoSync = toggleCalAutoSync;
     window.fetchGoogleCalendarEvents = fetchGoogleCalendarEvents;
     window.syncUpcomingScheduleToGoogleCalendar = syncUpcomingScheduleToGoogleCalendar;
     window.schedulePinOnSelectedDateToGoogleCalendar = schedulePinOnSelectedDateToGoogleCalendar;
@@ -3204,6 +3574,9 @@
     window.closeAuthHelpModal = closeAuthHelpModal;
     window.copyCurrentDomain = copyCurrentDomain;
     window.signInWithRedirectFlow = signInWithRedirectFlow;
+    window.sendChatMessage = sendChatMessage;
+    window.askQuickPrompt = askQuickPrompt;
+    window.clearChatHistory = clearChatHistory;
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {
@@ -3215,6 +3588,7 @@
     // App Initialization
     resetToNow();
     updateUI();
+    renderChatMessages();
     initFirebase();
   </script>
 </body>

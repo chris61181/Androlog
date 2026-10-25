@@ -33,6 +33,13 @@ jobs:
           find . -maxdepth 1 -name "*.json" -exec cp {} www/ \; || true
           find . -maxdepth 1 -name "*.js" -exec cp {} www/ \; || true
           find . -maxdepth 1 -name "*.png" -exec cp {} www/ \; || true
+
+          # Auto-increment version string using GitHub Actions run number
+          BUILD_NUM="${{ github.run_number }}"
+          VERSION_STR="2.4.${BUILD_NUM}"
+          sed -i "s/2\.4\.0/${VERSION_STR}/g" www/index.html || true
+          sed -i "s/2\.4\.0/${VERSION_STR}/g" www/sw.js || true
+
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
           cat << 'EOF' > capacitor.config.json
@@ -47,6 +54,10 @@ jobs:
           }
           EOF
           npx cap add android
+
+          # Update Android native versionCode and versionName in build.gradle
+          sed -i "s/versionCode 1/versionCode ${BUILD_NUM}/g" android/app/build.gradle || true
+          sed -i "s/versionName \"1.0\"/versionName \"${VERSION_STR}\"/g" android/app/build.gradle || true
 
           # Patch MainActivity.java to support Google OAuth popups and strip '; wv' from User-Agent
           cat << 'EOF' > android/app/src/main/java/com/coyle/androlog/MainActivity.java
@@ -158,13 +169,14 @@ jobs:
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: AndroLog-APK
+          name: AndroLog-APK-v2.4.${{ github.run_number }}
           path: AndroLog.apk
 
       - name: Publish APK to Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: "AndroLog Latest APK"
+          name: "AndroLog v2.4.${{ github.run_number }} (Build #${{ github.run_number }})"
+          body: "Automated Android APK build #${{ github.run_number }} compiled from commit ${{ github.sha }}."
           files: AndroLog.apk
           prerelease: false
