@@ -104,7 +104,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-base font-bold leading-none tracking-tight text-white">AndroLog</h1>
-          <span id="header-version-badge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">v2.4.0</span>
+          <span id="header-version-badge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">v2.5.0</span>
         </div>
         <p class="text-[11px] text-brand-muted mt-0.5" id="header-subtitle">GameDay Men's Health • AccessLabs</p>
       </div>
@@ -740,7 +740,7 @@
 
       <!-- App Version & Revision Footer -->
       <div class="text-center py-2 text-[11px] text-brand-muted font-mono">
-        <span id="settings-version-text">AndroLog v2.4.0 • Precision TRT Protocol</span>
+        <span id="settings-version-text">AndroLog v2.5.0 • Precision TRT Protocol</span>
       </div>
     </div>
 
@@ -1011,13 +1011,14 @@
       getAuth, 
       signInWithPopup, 
       signInWithRedirect, 
+      signInWithCredential,
       getRedirectResult, 
       GoogleAuthProvider, 
       onAuthStateChanged, 
       signOut 
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
-    const APP_VERSION = '2.4.0';
+    const APP_VERSION = '2.5.0';
 
     // Defaulting directly to your Left & Right Deltoid rotation
     const DEFAULT_SITES = [
@@ -2444,6 +2445,76 @@
       }
     }
 
+    async function handleNativeOAuthCallback(callbackUrl) {
+      if (!callbackUrl) return;
+      try {
+        showToast('Completing Google Workspace sign-in...', 'info');
+        let accessToken = null;
+        const hashIdx = callbackUrl.indexOf('#');
+        if (hashIdx !== -1) {
+          const hashParams = new URLSearchParams(callbackUrl.slice(hashIdx + 1));
+          accessToken = hashParams.get('access_token');
+        }
+        if (!accessToken) {
+          const qIdx = callbackUrl.indexOf('?');
+          if (qIdx !== -1) {
+            const qStr = callbackUrl.slice(qIdx + 1).split('#')[0];
+            const qParams = new URLSearchParams(qStr);
+            accessToken = qParams.get('access_token');
+          }
+        }
+
+        if (!accessToken) {
+          showToast('Could not extract Google access token. Please try again.', 'error');
+          return;
+        }
+
+        cachedAccessToken = accessToken;
+        localStorage.setItem('androlog_google_token', cachedAccessToken);
+
+        let profile = { displayName: 'Google Account', email: '', photoURL: '' };
+        try {
+          const uRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          if (uRes.ok) {
+            const uData = await uRes.json();
+            profile = {
+              displayName: uData.name || uData.given_name || 'Google User',
+              email: uData.email || '',
+              photoURL: uData.picture || ''
+            };
+          }
+        } catch (uErr) {
+          console.warn('Userinfo fetch warning:', uErr);
+        }
+
+        try {
+          if (auth) {
+            const fbCred = GoogleAuthProvider.credential(null, accessToken);
+            const fbRes = await signInWithCredential(auth, fbCred);
+            if (fbRes && fbRes.user) {
+              profile.displayName = fbRes.user.displayName || profile.displayName;
+              profile.email = fbRes.user.email || profile.email;
+              profile.photoURL = fbRes.user.photoURL || profile.photoURL;
+            }
+          }
+        } catch (fbErr) {
+          console.warn('Firebase credential sync notice:', fbErr);
+        }
+
+        currentUser = profile;
+        localStorage.setItem('androlog_google_user', JSON.stringify(profile));
+        updateGoogleUIState();
+        showToast(`Connected to Google as ${profile.email || profile.displayName}!`, 'success');
+        await loadDriveBackupsList();
+        await fetchGoogleCalendarEvents();
+      } catch (err) {
+        console.error('Native OAuth callback error:', err);
+        showToast('Sign-in error: ' + (err.message || 'Unknown error'), 'error');
+      }
+    }
+
     async function handleGoogleSignIn() {
       if (!auth) {
         showToast('Authentication is initializing, please try again.', 'info');
@@ -2451,14 +2522,26 @@
       }
       try {
         isSigningIn = true;
+
+        // Detect Android APK / Capacitor environment
+        const isAndroidApk = (typeof window.Capacitor !== 'undefined') ||
+          (window.location.hostname === 'localhost' && /Android/i.test(navigator.userAgent));
+
+        if (isAndroidApk) {
+          const clientId = FALLBACK_FIREBASE_CONFIG.oAuthClientId;
+          const redirectUri = `https://${FALLBACK_FIREBASE_CONFIG.authDomain}/__/auth/handler`;
+          const scope = 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.file';
+          const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}&include_granted_scopes=true&prompt=select_account`;
+          window.open(oauthUrl, '_blank');
+          return;
+        }
+
         const provider = new GoogleAuthProvider();
         // Google Calendar & Drive scopes
         provider.addScope('https://www.googleapis.com/auth/calendar');
         provider.addScope('https://www.googleapis.com/auth/drive.file');
 
         provider.setCustomParameters({ prompt: 'select_account' });
-
-        const isNative = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform ? window.Capacitor.isNativePlatform() : false;
 
         try {
           const result = await signInWithPopup(auth, provider);
@@ -2501,6 +2584,12 @@
 
     async function signInWithRedirectFlow() {
       closeAuthHelpModal();
+      const isAndroidApk = (typeof window.Capacitor !== 'undefined') ||
+        (window.location.hostname === 'localhost' && /Android/i.test(navigator.userAgent));
+      if (isAndroidApk) {
+        handleGoogleSignIn();
+        return;
+      }
       if (!auth) return;
       try {
         const provider = new GoogleAuthProvider();
@@ -2675,6 +2764,17 @@
       }
     }
 
+    function handleExpiredGoogleToken() {
+      cachedAccessToken = null;
+      cachedDriveFolderId = null;
+      cachedCalendarId = null;
+      googleCalEventsByDate = {};
+      localStorage.removeItem('androlog_google_token');
+      updateGoogleUIState();
+      renderCalendar();
+      showToast('Google session expired. Tap "Sign in with Google" to reconnect.', 'info');
+    }
+
     // Google Drive v3 Folder Management
     async function getOrCreateDriveFolder() {
       if (cachedDriveFolderId) return cachedDriveFolderId;
@@ -2684,6 +2784,13 @@
       const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`, {
         headers: { Authorization: `Bearer ${cachedAccessToken}` }
       });
+
+      if (searchRes.status === 401) {
+        handleExpiredGoogleToken();
+        const authErr = new Error('Google session expired.');
+        authErr.isAuthExpired = true;
+        throw authErr;
+      }
 
       if (!searchRes.ok) {
         const err = await searchRes.json().catch(() => ({}));
@@ -2910,6 +3017,11 @@
           headers: { Authorization: `Bearer ${cachedAccessToken}` }
         });
 
+        if (res.status === 401) {
+          handleExpiredGoogleToken();
+          return;
+        }
+
         if (!res.ok) {
           throw new Error('Failed to list files from Google Drive.');
         }
@@ -2969,7 +3081,12 @@
         });
 
       } catch (err) {
-        console.error('List Drive files error:', err);
+        if (err && (err.isAuthExpired || String(err.message).includes('invalid authentication credentials'))) {
+          handleExpiredGoogleToken();
+          container.innerHTML = '<p class="text-xs text-brand-muted py-2">Session expired. Sign in above to view Drive files.</p>';
+          return;
+        }
+        console.warn('List Drive files notice:', err);
         container.innerHTML = `
           <div class="p-3 text-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
             <p>Failed to load files from Google Drive.</p>
@@ -3142,6 +3259,11 @@
           headers: { Authorization: `Bearer ${cachedAccessToken}` }
         });
 
+        if (res.status === 401) {
+          handleExpiredGoogleToken();
+          return;
+        }
+
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err.error?.message || 'Failed to fetch Google Calendar events.');
@@ -3180,7 +3302,11 @@
 
         renderCalendar();
       } catch (err) {
-        console.error('Fetch Google Calendar events error:', err);
+        if (err && (err.isAuthExpired || String(err.message).includes('invalid authentication credentials'))) {
+          handleExpiredGoogleToken();
+          return;
+        }
+        console.warn('Fetch Google Calendar events notice:', err);
       } finally {
         isFetchingGoogleCal = false;
       }
@@ -4044,6 +4170,7 @@ Guidelines: Be concise, analytical, and grounded in the user's exact doses and n
     window.closeAuthHelpModal = closeAuthHelpModal;
     window.copyCurrentDomain = copyCurrentDomain;
     window.signInWithRedirectFlow = signInWithRedirectFlow;
+    window.handleNativeOAuthCallback = handleNativeOAuthCallback;
     window.sendChatMessage = sendChatMessage;
     window.askQuickPrompt = askQuickPrompt;
     window.clearChatHistory = clearChatHistory;

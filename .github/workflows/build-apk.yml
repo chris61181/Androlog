@@ -36,9 +36,9 @@ jobs:
 
           # Auto-increment version string using GitHub Actions run number
           BUILD_NUM="${{ github.run_number }}"
-          VERSION_STR="2.4.${BUILD_NUM}"
-          sed -i "s/2\.4\.0/${VERSION_STR}/g" www/index.html || true
-          sed -i "s/2\.4\.0/${VERSION_STR}/g" www/sw.js || true
+          VERSION_STR="2.5.${BUILD_NUM}"
+          sed -i "s/2\.5\.0/${VERSION_STR}/g" www/index.html || true
+          sed -i "s/2\.5\.0/${VERSION_STR}/g" www/sw.js || true
 
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
@@ -49,7 +49,15 @@ jobs:
             "webDir": "www",
             "server": {
               "androidScheme": "https",
-              "hostname": "localhost"
+              "hostname": "localhost",
+              "allowNavigation": [
+                "localhost",
+                "*.firebaseapp.com",
+                "*.google.com",
+                "accounts.google.com",
+                "*.googleapis.com",
+                "*.gstatic.com"
+              ]
             }
           }
           EOF
@@ -59,23 +67,53 @@ jobs:
           sed -i "s/versionCode 1/versionCode ${BUILD_NUM}/g" android/app/build.gradle || true
           sed -i "s/versionName \"1.0\"/versionName \"${VERSION_STR}\"/g" android/app/build.gradle || true
 
-          # Patch MainActivity.java to support Google OAuth popups and strip '; wv' from User-Agent
+          # Patch MainActivity.java to keep Google OAuth inside in-app WebView and intercept token callback
           cat << 'EOF' > android/app/src/main/java/com/coyle/androlog/MainActivity.java
           package com.coyle.androlog;
 
           import android.app.Dialog;
+          import android.graphics.Bitmap;
+          import android.graphics.Color;
           import android.os.Bundle;
           import android.os.Message;
+          import android.view.Gravity;
           import android.view.ViewGroup;
           import android.webkit.CookieManager;
           import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceRequest;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.widget.Button;
+          import android.widget.FrameLayout;
+          import android.widget.LinearLayout;
+          import android.widget.TextView;
           import com.getcapacitor.BridgeActivity;
           import com.getcapacitor.BridgeWebChromeClient;
+          import org.json.JSONObject;
 
           public class MainActivity extends BridgeActivity {
               private Dialog authDialog;
+              private boolean tokenDelivered = false;
+
+              private void deliverOAuthCallbackToMainWebView(WebView mainWebView, String url) {
+                  if (tokenDelivered || url == null) return;
+                  if (url.contains("access_token=") || url.contains("code=") || url.contains("error=")) {
+                      tokenDelivered = true;
+                      final String escapedUrl = JSONObject.quote(url);
+                      mainWebView.post(() -> {
+                          try {
+                              if (authDialog != null && authDialog.isShowing()) {
+                                  authDialog.dismiss();
+                              }
+                          } catch (Exception ignored) {}
+                          mainWebView.evaluateJavascript(
+                              "if(window.handleNativeOAuthCallback){window.handleNativeOAuthCallback(" + escapedUrl + ");}",
+                              null
+                          );
+                      });
+                  }
+              }
 
               @Override
               public void onCreate(Bundle savedInstanceState) {
@@ -91,7 +129,6 @@ jobs:
                               settings.setDomStorageEnabled(true);
                               settings.setDatabaseEnabled(true);
 
-                              // Enable cookies & third-party cookies across localhost and firebaseapp.com
                               CookieManager cookieManager = CookieManager.getInstance();
                               cookieManager.setAcceptCookie(true);
                               cookieManager.setAcceptThirdPartyCookies(webView, true);
@@ -102,11 +139,12 @@ jobs:
                                   settings.setUserAgentString(ua.replace("; wv", ""));
                               }
 
-                              // Handle OAuth popups seamlessly inside an overlay Dialog
+                              // Handle OAuth popups inside an in-app Dialog with its own WebViewClient
                               webView.setWebChromeClient(new BridgeWebChromeClient(this.bridge) {
                                   @Override
                                   public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                                       try {
+                                          tokenDelivered = false;
                                           WebView popupWebView = new WebView(MainActivity.this);
                                           WebSettings popupSettings = popupWebView.getSettings();
                                           popupSettings.setJavaScriptEnabled(true);
@@ -123,8 +161,107 @@ jobs:
                                           CookieManager.getInstance().setAcceptCookie(true);
                                           CookieManager.getInstance().setAcceptThirdPartyCookies(popupWebView, true);
 
+                                          // CRITICAL: Set WebViewClient so Android NEVER kicks OAuth URLs out to external Chrome
+                                          popupWebView.setWebViewClient(new WebViewClient() {
+                                              private boolean checkIntercept(WebView wv, String url) {
+                                                  if (url != null && url.contains("firebaseapp.com/__/auth/handler")) {
+                                                      if (url.contains("access_token=") || url.contains("code=") || url.contains("error=")) {
+                                                          deliverOAuthCallbackToMainWebView(webView, url);
+                                                          return true;
+                                                      }
+                                                  }
+                                                  return false;
+                                              }
+
+                                              @Override
+                                              public boolean shouldOverrideUrlLoading(WebView wv, WebResourceRequest request) {
+                                                  String url = request.getUrl().toString();
+                                                  if (checkIntercept(wv, url)) return true;
+                                                  return false; // Keep navigation inside popupWebView
+                                              }
+
+                                              @Override
+                                              public boolean shouldOverrideUrlLoading(WebView wv, String url) {
+                                                  if (checkIntercept(wv, url)) return true;
+                                                  return false; // Keep navigation inside popupWebView
+                                              }
+
+                                              @Override
+                                              public void onPageStarted(WebView wv, String url, Bitmap favicon) {
+                                                  if (checkIntercept(wv, url)) {
+                                                      wv.stopLoading();
+                                                      return;
+                                                  }
+                                                  super.onPageStarted(wv, url, favicon);
+                                              }
+
+                                              @Override
+                                              public void doUpdateVisitedHistory(WebView wv, String url, boolean isReload) {
+                                                  checkIntercept(wv, url);
+                                                  super.doUpdateVisitedHistory(wv, url, isReload);
+                                              }
+
+                                              @Override
+                                              public void onPageFinished(WebView wv, String url) {
+                                                  super.onPageFinished(wv, url);
+                                                  if (checkIntercept(wv, url)) return;
+                                                  if (url != null && url.contains("firebaseapp.com/__/auth/handler")) {
+                                                      wv.evaluateJavascript("window.location.href", val -> {
+                                                          if (val != null && (val.contains("access_token=") || val.contains("code="))) {
+                                                              String clean = val.replaceAll("^\"|\"$", "");
+                                                              deliverOAuthCallbackToMainWebView(webView, clean);
+                                                          }
+                                                      });
+                                                  }
+                                              }
+                                          });
+
+                                          // Build clean full-screen container with a top Close bar
+                                          LinearLayout container = new LinearLayout(MainActivity.this);
+                                          container.setOrientation(LinearLayout.VERTICAL);
+                                          container.setBackgroundColor(Color.parseColor("#051424"));
+
+                                          LinearLayout topBar = new LinearLayout(MainActivity.this);
+                                          topBar.setOrientation(LinearLayout.HORIZONTAL);
+                                          topBar.setGravity(Gravity.CENTER_VERTICAL);
+                                          topBar.setBackgroundColor(Color.parseColor("#0d1c2d"));
+                                          topBar.setPadding(36, 24, 36, 24);
+
+                                          TextView titleView = new TextView(MainActivity.this);
+                                          titleView.setText("Google Workspace Sign-In");
+                                          titleView.setTextColor(Color.WHITE);
+                                          titleView.setTextSize(15f);
+                                          LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+                                              0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f
+                                          );
+                                          topBar.addView(titleView, titleParams);
+
+                                          Button closeBtn = new Button(MainActivity.this);
+                                          closeBtn.setText("Cancel");
+                                          closeBtn.setTextColor(Color.parseColor("#0ea5e9"));
+                                          closeBtn.setBackgroundColor(Color.TRANSPARENT);
+                                          closeBtn.setOnClickListener(v -> {
+                                              try {
+                                                  if (authDialog != null && authDialog.isShowing()) {
+                                                      authDialog.dismiss();
+                                                  }
+                                              } catch (Exception ignored) {}
+                                          });
+                                          topBar.addView(closeBtn);
+
+                                          container.addView(topBar, new LinearLayout.LayoutParams(
+                                              ViewGroup.LayoutParams.MATCH_PARENT,
+                                              ViewGroup.LayoutParams.WRAP_CONTENT
+                                          ));
+                                          container.addView(popupWebView, new LinearLayout.LayoutParams(
+                                              ViewGroup.LayoutParams.MATCH_PARENT,
+                                              0,
+                                              1f
+                                          ));
+
                                           authDialog = new Dialog(MainActivity.this, android.R.style.Theme_DeviceDefault_NoActionBar);
-                                          authDialog.setContentView(popupWebView);
+                                          authDialog.setContentView(container);
+                                          authDialog.setCancelable(true);
                                           if (authDialog.getWindow() != null) {
                                               authDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                                           }
@@ -169,14 +306,14 @@ jobs:
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: AndroLog-APK-v2.4.${{ github.run_number }}
+          name: AndroLog-APK-v2.5.${{ github.run_number }}
           path: AndroLog.apk
 
       - name: Publish APK to Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: "AndroLog v2.4.${{ github.run_number }} (Build #${{ github.run_number }})"
+          name: "AndroLog v2.5.${{ github.run_number }} (Build #${{ github.run_number }})"
           body: "Automated Android APK build #${{ github.run_number }} compiled from commit ${{ github.sha }}."
           files: AndroLog.apk
           prerelease: false
