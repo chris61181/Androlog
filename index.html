@@ -109,14 +109,19 @@
         <p class="text-[11px] text-brand-muted mt-0.5" id="header-subtitle">GameDay Men's Health • AccessLabs</p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <button onclick="switchTab('settings'); setTimeout(() => document.getElementById('drive-section')?.scrollIntoView({behavior:'smooth'}), 100)" id="header-drive-btn" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border transition" title="Google Drive Cloud Sync">
+    <div class="flex items-center gap-1.5">
+      <button onclick="openApiSettingsModal()" id="header-api-badge" class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border transition" title="API & Model Settings (Gemini 4 Argon)">
+        <span class="w-2 h-2 rounded-full bg-slate-500" id="header-api-dot"></span>
+        <span id="header-api-label" class="text-[11px] font-bold">API</span>
+      </button>
+      <button onclick="switchTab('settings'); setTimeout(() => document.getElementById('drive-section')?.scrollIntoView({behavior:'smooth'}), 100)" id="header-drive-btn" class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border transition" title="Google Drive Cloud Sync">
         <span class="w-2 h-2 rounded-full bg-slate-500" id="header-drive-dot"></span>
         <span class="material-symbols-outlined text-xs text-brand-cyan">cloud</span>
-        <span id="header-drive-label">Drive</span>
+        <span id="header-drive-label" class="text-[11px]">Drive</span>
       </button>
-      <button onclick="switchTab('settings')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border">
-        <span class="material-symbols-outlined text-xs text-brand-cyan">tune</span> Setup
+      <button onclick="switchTab('settings')" class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-brand-surface hover:bg-brand-card text-brand-muted border border-brand-border" title="Protocol Settings">
+        <span class="material-symbols-outlined text-xs text-brand-cyan">tune</span>
+        <span class="text-[11px]">Setup</span>
       </button>
     </div>
   </header>
@@ -395,7 +400,10 @@
             <div>
               <div class="flex items-center gap-1.5">
                 <h3 class="font-bold text-white text-sm">TRT & Lab Protocol Assistant</h3>
-                <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">Gemini</span>
+                <button onclick="openApiSettingsModal()" class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 hover:bg-brand-cyan hover:text-brand-dark transition flex items-center gap-1" title="Configure Gemini 4 Argon & API Key">
+                  <span>Gemini 4 Argon</span>
+                  <span class="material-symbols-outlined text-[10px]">tune</span>
+                </button>
               </div>
               <p class="text-[11px] text-brand-muted">Synced with your dose logs & AccessLabs panels</p>
             </div>
@@ -842,6 +850,147 @@
       <div class="flex items-center gap-2 pt-1" id="auth-help-actions">
         <button onclick="closeAuthHelpModal()" class="flex-1 bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-white font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
           Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API & Model Settings Modal (Gemini 4 Argon & Local Vault) -->
+  <div id="api-settings-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-brand-card border border-brand-border rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shrink-0">
+            <span class="material-symbols-outlined text-xl">memory</span>
+          </div>
+          <div>
+            <h4 class="font-bold text-white text-sm">API & Model Settings</h4>
+            <p class="text-[11px] text-brand-muted">Gemini 4 Argon • Local Vault</p>
+          </div>
+        </div>
+        <button onclick="closeApiSettingsModal()" class="text-brand-muted hover:text-white p-1">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <!-- Active Key Source Status Box -->
+      <div id="api-status-banner" class="p-3 rounded-xl bg-brand-surface border border-brand-border flex items-center justify-between">
+        <div class="min-w-0 pr-2">
+          <span class="text-[10px] uppercase font-bold text-brand-muted tracking-wider block">Active Key Source</span>
+          <span id="api-status-source-text" class="text-xs font-bold text-white block mt-0.5 truncate">Detecting...</span>
+        </div>
+        <span id="api-status-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-card border border-brand-border text-brand-muted shrink-0">Checking</span>
+      </div>
+
+      <!-- API Key Vault Section -->
+      <div class="space-y-2">
+        <label class="text-xs font-bold text-white flex items-center justify-between">
+          <span>Gemini API Key Vault</span>
+          <span class="text-[10px] font-mono text-brand-muted">localStorage</span>
+        </label>
+        <div class="relative flex items-center">
+          <input
+            type="password"
+            id="api-key-input"
+            placeholder="AIzaSy..."
+            class="w-full bg-brand-surface border border-brand-border rounded-xl pl-3 pr-10 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brand-cyan"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button
+            type="button"
+            onclick="toggleApiKeyVisibility()"
+            class="absolute right-2 text-brand-muted hover:text-white p-1.5"
+            title="Toggle visibility"
+          >
+            <span class="material-symbols-outlined text-base" id="api-key-eye-icon">visibility_off</span>
+          </button>
+        </div>
+        <p class="text-[10px] text-brand-muted leading-relaxed">
+          Stored strictly in your device's browser vault (<code class="text-sky-300">androlog_api_key</code>). Never hardcoded or committed to GitHub. Works on GitHub Pages and Android APK.
+        </p>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="saveApiKeyFromInput()" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+            <span class="material-symbols-outlined text-sm">lock</span> Save to Vault
+          </button>
+          <button onclick="clearApiKeyFromVault()" class="bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-red-400 border border-brand-border font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+            <span class="material-symbols-outlined text-sm">delete</span> Clear Key
+          </button>
+        </div>
+      </div>
+
+      <!-- Argon Model & Thinking Level -->
+      <div class="space-y-2.5 pt-2 border-t border-brand-border/60">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold text-white">Target Model</label>
+          <span class="text-[11px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded">gemini-4-argon</span>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-white block mb-1">Thinking Level</label>
+          <select id="api-thinking-level" onchange="updateThinkingLevel(this.value)" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-xs text-white font-semibold focus:outline-none focus:border-brand-cyan">
+            <option value="LOW">LOW (Default • Fast / Cost-Effective)</option>
+            <option value="MEDIUM">MEDIUM (Deep Clinical & Longitudinal Reasoning)</option>
+          </select>
+          <p class="text-[10px] text-brand-muted mt-1 leading-relaxed">
+            Strict Argon configuration: <code class="text-slate-300">temperature</code>, <code class="text-slate-300">topP</code>, and <code class="text-slate-300">topK</code> are omitted per protocol rules.
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Billing & Connection Diagnostic -->
+      <div class="space-y-2.5 pt-2 border-t border-brand-border/60">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm text-brand-cyan">speed</span> Billing & Connection Diagnostic
+          </label>
+        </div>
+        <button
+          onclick="testArgonConnection()"
+          id="btn-test-argon"
+          class="w-full bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-cyan/40 hover:border-brand-cyan font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
+        >
+          <span class="material-symbols-outlined text-base">bolt</span> Test Argon Connection
+        </button>
+
+        <!-- Test Results Box -->
+        <div id="argon-test-results" class="hidden p-3 rounded-xl bg-brand-surface border border-brand-border space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span id="argon-test-status" class="font-bold text-emerald-400 flex items-center gap-1 text-[11px]">
+              <span class="material-symbols-outlined text-sm">check_circle</span> HTTP 200 • Ready
+            </span>
+            <span id="argon-test-time" class="text-[10px] text-brand-muted font-mono">--:--:--</span>
+          </div>
+          <div class="text-[11px] text-slate-300 bg-brand-card p-2 rounded-lg border border-brand-border font-mono">
+            <span class="text-brand-muted block text-[10px] uppercase font-bold">Model Output:</span>
+            <span id="argon-test-reply">"Argon Ready"</span>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-muted block mb-1">usageMetadata Token Burn</span>
+            <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+              <div class="bg-brand-card p-1.5 rounded border border-brand-border/50">
+                <span class="text-brand-muted block text-[10px]">Prompt Tokens:</span>
+                <span id="argon-tokens-prompt" class="font-bold text-white font-mono">0</span>
+              </div>
+              <div class="bg-brand-card p-1.5 rounded border border-brand-border/50">
+                <span class="text-brand-muted block text-[10px]">Thinking Tokens:</span>
+                <span id="argon-tokens-thinking" class="font-bold text-amber-400 font-mono">0</span>
+              </div>
+              <div class="bg-brand-card p-1.5 rounded border border-brand-border/50">
+                <span class="text-brand-muted block text-[10px]">Candidate Tokens:</span>
+                <span id="argon-tokens-candidates" class="font-bold text-emerald-400 font-mono">0</span>
+              </div>
+              <div class="bg-brand-card p-1.5 rounded border border-brand-border/50">
+                <span class="text-brand-muted block text-[10px]">Total Token Burn:</span>
+                <span id="argon-tokens-total" class="font-bold text-brand-cyan font-mono">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="closeApiSettingsModal()" class="w-full bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-white font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
+          Close Settings
         </button>
       </div>
     </div>
@@ -3372,6 +3521,262 @@
     }
 
     // ----------------------------------------------------
+    // API Key Vault, Thinking Config & Gemini 4 Argon
+    // ----------------------------------------------------
+    const API_KEY_STORAGE_KEY = 'androlog_api_key';
+    const THINKING_LEVEL_STORAGE_KEY = 'androlog_thinking_level';
+    let serverHasEnvKey = false;
+    let isTestingArgon = false;
+
+    function getThinkingLevel() {
+      return localStorage.getItem(THINKING_LEVEL_STORAGE_KEY) || 'LOW';
+    }
+
+    function updateThinkingLevel(val) {
+      localStorage.setItem(THINKING_LEVEL_STORAGE_KEY, val);
+      showToast(`Argon thinkingLevel set to ${val}`, 'info');
+    }
+
+    function getActiveApiKey() {
+      const vaultKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+      if (vaultKey && vaultKey.trim().length > 0) {
+        return { key: vaultKey.trim(), source: 'vault' };
+      }
+      if (serverHasEnvKey) {
+        return { key: '', source: 'env' };
+      }
+      return { key: '', source: 'none' };
+    }
+
+    async function checkServerApiStatus() {
+      try {
+        const res = await fetch('/api/status');
+        if (res.ok) {
+          const data = await res.json();
+          serverHasEnvKey = Boolean(data.hasEnvKey);
+        }
+      } catch (e) {
+        serverHasEnvKey = false;
+      }
+      updateApiKeyUI();
+    }
+
+    function updateApiKeyUI() {
+      const status = getActiveApiKey();
+      const badge = document.getElementById('header-api-badge');
+      const dot = document.getElementById('header-api-dot');
+      const label = document.getElementById('header-api-label');
+      const pill = document.getElementById('api-status-pill');
+      const sourceText = document.getElementById('api-status-source-text');
+      const input = document.getElementById('api-key-input');
+      const thinkingSelect = document.getElementById('api-thinking-level');
+
+      if (thinkingSelect) {
+        thinkingSelect.value = getThinkingLevel();
+      }
+
+      const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
+      if (input && document.activeElement !== input) {
+        input.value = savedKey;
+      }
+
+      if (status.source === 'vault') {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        if (badge) badge.className = 'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 transition';
+        if (label) label.innerText = 'Local Vault';
+        if (pill) {
+          pill.innerText = 'Local Vault Active';
+          pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0';
+        }
+        if (sourceText) sourceText.innerText = 'Personal Key saved in browser vault (androlog_api_key)';
+      } else if (status.source === 'env') {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-brand-cyan';
+        if (badge) badge.className = 'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 transition';
+        if (label) label.innerText = 'AI Studio Env';
+        if (pill) {
+          pill.innerText = 'AI Studio Env Active';
+          pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 shrink-0';
+        }
+        if (sourceText) sourceText.innerText = 'AI Studio Environment (process.env.GEMINI_API_KEY)';
+      } else {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-red-400 animate-pulse';
+        if (badge) badge.className = 'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/30 transition';
+        if (label) label.innerText = 'Missing Key';
+        if (pill) {
+          pill.innerText = 'Missing Key';
+          pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30 shrink-0';
+        }
+        if (sourceText) sourceText.innerText = 'No API key configured. Paste key below.';
+      }
+    }
+
+    function openApiSettingsModal() {
+      updateApiKeyUI();
+      document.getElementById('api-settings-modal').classList.remove('hidden');
+    }
+
+    function closeApiSettingsModal() {
+      document.getElementById('api-settings-modal').classList.add('hidden');
+    }
+
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('api-key-input');
+      const icon = document.getElementById('api-key-eye-icon');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.innerText = 'visibility';
+      } else {
+        input.type = 'password';
+        if (icon) icon.innerText = 'visibility_off';
+      }
+    }
+
+    function saveApiKeyFromInput() {
+      const input = document.getElementById('api-key-input');
+      const val = (input?.value || '').trim();
+      if (!val) {
+        showToast('Please paste an API key first, or tap Clear Key.', 'info');
+        return;
+      }
+      localStorage.setItem(API_KEY_STORAGE_KEY, val);
+      updateApiKeyUI();
+      showToast('API Key saved to Local Vault (androlog_api_key)!', 'success');
+    }
+
+    function clearApiKeyFromVault() {
+      localStorage.removeItem(API_KEY_STORAGE_KEY);
+      const input = document.getElementById('api-key-input');
+      if (input) input.value = '';
+      updateApiKeyUI();
+      showToast('API Key removed from Local Vault.', 'info');
+    }
+
+    // Diagnostic test connection for Gemini 4 Argon with usageMetadata breakdown
+    async function testArgonConnection() {
+      if (isTestingArgon) return;
+      const active = getActiveApiKey();
+      if (active.source === 'none') {
+        showToast('Please enter an API key to test the connection.', 'error');
+        document.getElementById('api-key-input')?.focus();
+        return;
+      }
+
+      isTestingArgon = true;
+      const btn = document.getElementById('btn-test-argon');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="w-3.5 h-3.5 rounded-full border-2 border-brand-cyan border-t-transparent animate-spin"></span> Testing gemini-4-argon...`;
+      }
+
+      const resultsBox = document.getElementById('argon-test-results');
+      if (resultsBox) resultsBox.classList.remove('hidden');
+
+      const statusEl = document.getElementById('argon-test-status');
+      const timeEl = document.getElementById('argon-test-time');
+      const replyEl = document.getElementById('argon-test-reply');
+      const pTokensEl = document.getElementById('argon-tokens-prompt');
+      const thTokensEl = document.getElementById('argon-tokens-thinking');
+      const cTokensEl = document.getElementById('argon-tokens-candidates');
+      const totTokensEl = document.getElementById('argon-tokens-total');
+
+      if (timeEl) timeEl.innerText = new Date().toLocaleTimeString();
+
+      try {
+        let data = null;
+        let isDirect = false;
+
+        // Try Node server first
+        try {
+          const res = await fetch('/api/test-connection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              apiKey: active.key,
+              thinkingLevel: 'LOW'
+            })
+          });
+          if (res.ok) {
+            data = await res.json();
+          } else if (res.status === 404 && active.key) {
+            isDirect = true;
+          } else {
+            const errJson = await res.json().catch(() => ({}));
+            throw new Error(errJson.error || `Server HTTP ${res.status}`);
+          }
+        } catch (fetchErr) {
+          if (active.key) {
+            isDirect = true;
+          } else {
+            throw fetchErr;
+          }
+        }
+
+        // Direct REST fallback for GitHub Pages (client-side vault)
+        if (isDirect && active.key) {
+          const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-4-argon:generateContent?key=${encodeURIComponent(active.key)}`;
+          // STRICT ARGON RULE: only thinkingConfig with thinkingLevel: 'LOW'
+          const directPayload = {
+            contents: [{ parts: [{ text: 'Reply with: Argon Ready' }] }],
+            generationConfig: {
+              thinkingConfig: {
+                thinkingLevel: 'LOW'
+              }
+            }
+          };
+          const directRes = await fetch(directUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(directPayload)
+          });
+          const directJson = await directRes.json();
+          if (!directRes.ok) {
+            throw new Error(directJson.error?.message || `Google API error ${directRes.status}`);
+          }
+          const replyText = directJson.candidates?.[0]?.content?.parts?.[0]?.text || 'Argon Ready';
+          data = {
+            ok: true,
+            model: 'gemini-4-argon',
+            reply: replyText,
+            usageMetadata: directJson.usageMetadata || null
+          };
+        }
+
+        if (!data || !data.ok) {
+          throw new Error(data?.error || 'No valid response received.');
+        }
+
+        if (statusEl) {
+          statusEl.className = 'font-bold text-emerald-400 flex items-center gap-1 text-[11px]';
+          statusEl.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> HTTP 200 • Argon Ready`;
+        }
+        if (replyEl) replyEl.innerText = data.reply.trim();
+
+        const usage = data.usageMetadata || {};
+        if (pTokensEl) pTokensEl.innerText = usage.promptTokenCount ?? 0;
+        if (thTokensEl) thTokensEl.innerText = usage.thoughtsTokenCount ?? 0;
+        if (cTokensEl) cTokensEl.innerText = usage.candidatesTokenCount ?? 0;
+        if (totTokensEl) totTokensEl.innerText = usage.totalTokenCount ?? 0;
+
+        showToast('Gemini 4 Argon connection verified successfully!', 'success');
+      } catch (err) {
+        console.error('Argon connection test failed:', err);
+        if (statusEl) {
+          statusEl.className = 'font-bold text-red-400 flex items-center gap-1 text-[11px]';
+          statusEl.innerHTML = `<span class="material-symbols-outlined text-sm">error</span> Test Failed`;
+        }
+        if (replyEl) replyEl.innerText = `Error: ${err.message || 'Connection refused'}`;
+        showToast('Argon test failed: ' + (err.message || 'Check key'), 'error');
+      } finally {
+        isTestingArgon = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<span class="material-symbols-outlined text-base">bolt</span> Test Argon Connection`;
+        }
+      }
+    }
+
+    // ----------------------------------------------------
     // TRT & Biomarker Multi-Turn Gemini Chatbot
     // ----------------------------------------------------
     const CHAT_STORAGE_KEY = 'androlog_chat_history';
@@ -3388,7 +3793,7 @@
       return [
         {
           role: 'model',
-          text: "Ready to analyze your protocol and bloodwork. I have context on your **120mg/wk** (60mg Thu & Sun) Testosterone Cypionate schedule and your 2026 AccessLabs trough panels (latest **959 ng/dL Total T**, **26.0 pg/mL E2**). Ask me anything about your dosage correlation or biomarkers."
+          text: "Ready to analyze your protocol and bloodwork. I am powered by **Gemini 4 Argon** with direct context on your **120mg/wk** (60mg Thu & Sun) Testosterone Cypionate schedule and your 2026 AccessLabs trough panels (latest **959 ng/dL Total T**, **26.0 pg/mL E2**). Ask me anything about your dosage correlation, T:E2 ratio, or biomarkers."
         }
       ];
     }
@@ -3438,7 +3843,7 @@
         loadingDiv.innerHTML = `
           <div class="bg-brand-card border border-brand-border text-brand-cyan px-3 py-2 rounded-2xl rounded-bl-sm flex items-center gap-2 text-[11px] font-semibold">
             <span class="w-2 h-2 rounded-full bg-brand-cyan animate-ping"></span>
-            Analyzing protocol & biomarkers...
+            Gemini 4 Argon analyzing protocol & biomarkers...
           </div>
         `;
         container.appendChild(loadingDiv);
@@ -3466,6 +3871,13 @@
       if (event && event.preventDefault) event.preventDefault();
       if (isChatLoading) return;
 
+      const active = getActiveApiKey();
+      if (active.source === 'none') {
+        showToast('Missing Gemini API key. Opening API & Model Settings...', 'error');
+        openApiSettingsModal();
+        return;
+      }
+
       const inputEl = document.getElementById('chat-input');
       const userText = (presetPrompt !== undefined ? presetPrompt : (inputEl ? inputEl.value : '')).trim();
       if (!userText) return;
@@ -3483,31 +3895,89 @@
       if (sendBtn) sendBtn.disabled = true;
       renderChatMessages();
 
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: history,
-            contextData: buildChatContextData()
-          })
-        });
+      const thinkingLevel = getThinkingLevel();
 
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.error || `Server returned ${res.status}`);
+      try {
+        let replyText = null;
+        let isDirect = false;
+
+        // Try server endpoint first
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              messages: history,
+              contextData: buildChatContextData(),
+              apiKey: active.key,
+              model: 'gemini-4-argon',
+              thinkingLevel: thinkingLevel
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            replyText = data.reply;
+          } else if (res.status === 404 && active.key) {
+            isDirect = true;
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || `Server returned ${res.status}`);
+          }
+        } catch (fetchErr) {
+          if (active.key) {
+            isDirect = true;
+          } else {
+            throw fetchErr;
+          }
+        }
+
+        // Direct REST fallback for static GitHub Pages deployments
+        if (isDirect && active.key) {
+          const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-4-argon:generateContent?key=${encodeURIComponent(active.key)}`;
+          const contextObj = buildChatContextData();
+          const sysText = `You are the AndroLog TRT & Biomarker Clinical Protocol Assistant powered by Gemini 4 Argon.
+User Live Data:\n${JSON.stringify(contextObj, null, 2)}
+Guidelines: Be concise, analytical, and grounded in the user's exact doses and numbers. No-AI protocol.`;
+
+          const contents = history.map(m => ({
+            role: m.role === 'model' ? 'model' : 'user',
+            parts: [{ text: String(m.text || '') }]
+          }));
+
+          // STRICT ARGON RULE: Pass only thinkingConfig with thinkingLevel
+          const directPayload = {
+            system_instruction: { parts: [{ text: sysText }] },
+            contents: contents,
+            generationConfig: {
+              thinkingConfig: {
+                thinkingLevel: thinkingLevel
+              }
+            }
+          };
+
+          const directRes = await fetch(directUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(directPayload)
+          });
+          const directJson = await directRes.json();
+          if (!directRes.ok) {
+            throw new Error(directJson.error?.message || `Google API error ${directRes.status}`);
+          }
+          replyText = directJson.candidates?.[0]?.content?.parts?.[0]?.text;
         }
 
         history.push({
           role: 'model',
-          text: data.reply || 'No response received.'
+          text: replyText || 'No response received.'
         });
         saveChatHistory(history);
       } catch (err) {
         console.error('Chat error:', err);
         history.push({
           role: 'model',
-          text: `Unable to reach the cloud assistant right now (${err.message || 'offline'}). Your local protocol & lab charts remain fully available.`
+          text: `Unable to reach Gemini 4 Argon (${err.message || 'offline'}). Tap the header API badge to verify your API key or connection.`
         });
         saveChatHistory(history);
       } finally {
@@ -3577,6 +4047,13 @@
     window.sendChatMessage = sendChatMessage;
     window.askQuickPrompt = askQuickPrompt;
     window.clearChatHistory = clearChatHistory;
+    window.openApiSettingsModal = openApiSettingsModal;
+    window.closeApiSettingsModal = closeApiSettingsModal;
+    window.toggleApiKeyVisibility = toggleApiKeyVisibility;
+    window.saveApiKeyFromInput = saveApiKeyFromInput;
+    window.clearApiKeyFromVault = clearApiKeyFromVault;
+    window.updateThinkingLevel = updateThinkingLevel;
+    window.testArgonConnection = testArgonConnection;
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {
@@ -3589,6 +4066,7 @@
     resetToNow();
     updateUI();
     renderChatMessages();
+    checkServerApiStatus();
     initFirebase();
   </script>
 </body>
