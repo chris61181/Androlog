@@ -36,9 +36,9 @@ jobs:
 
           # Auto-increment version string using GitHub Actions run number
           BUILD_NUM="${{ github.run_number }}"
-          VERSION_STR="2.5.${BUILD_NUM}"
-          sed -i "s/2\.5\.0/${VERSION_STR}/g" www/index.html || true
-          sed -i "s/2\.5\.0/${VERSION_STR}/g" www/sw.js || true
+          VERSION_STR="3.0.${BUILD_NUM}"
+          sed -i "s/3\.0\.0/${VERSION_STR}/g" www/index.html || true
+          sed -i "s/3\.0\.0/${VERSION_STR}/g" www/sw.js || true
 
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
@@ -219,12 +219,12 @@ jobs:
                                           // Build clean full-screen container with a top Close bar
                                           LinearLayout container = new LinearLayout(MainActivity.this);
                                           container.setOrientation(LinearLayout.VERTICAL);
-                                          container.setBackgroundColor(Color.parseColor("#051424"));
+                                          container.setBackgroundColor(Color.parseColor("#09090b"));
 
                                           LinearLayout topBar = new LinearLayout(MainActivity.this);
                                           topBar.setOrientation(LinearLayout.HORIZONTAL);
                                           topBar.setGravity(Gravity.CENTER_VERTICAL);
-                                          topBar.setBackgroundColor(Color.parseColor("#0d1c2d"));
+                                          topBar.setBackgroundColor(Color.parseColor("#121215"));
                                           topBar.setPadding(36, 24, 36, 24);
 
                                           TextView titleView = new TextView(MainActivity.this);
@@ -238,7 +238,7 @@ jobs:
 
                                           Button closeBtn = new Button(MainActivity.this);
                                           closeBtn.setText("Cancel");
-                                          closeBtn.setTextColor(Color.parseColor("#0ea5e9"));
+                                          closeBtn.setTextColor(Color.parseColor("#10b981"));
                                           closeBtn.setBackgroundColor(Color.TRANSPARENT);
                                           closeBtn.setOnClickListener(v -> {
                                               try {
@@ -306,14 +306,14 @@ jobs:
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: AndroLog-APK-v2.5.${{ github.run_number }}
+          name: AndroLog-APK-v3.0.${{ github.run_number }}
           path: AndroLog.apk
 
       - name: Publish APK to Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: "AndroLog v2.5.${{ github.run_number }} (Build #${{ github.run_number }})"
+          name: "AndroLog v3.0.${{ github.run_number }} (Build #${{ github.run_number }})"
           body: "Automated Android APK build #${{ github.run_number }} compiled from commit ${{ github.sha }}."
           files: AndroLog.apk
           prerelease: false

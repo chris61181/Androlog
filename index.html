@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AndroLog — Precision TRT Tracker</title>
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#051424">
+  <meta name="theme-color" content="#09090b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,12 +20,12 @@
         extend: {
           colors: {
             brand: {
-              cyan: '#0ea5e9',
-              dark: '#051424',
-              surface: '#0d1c2d',
-              card: '#132338',
-              border: '#1f344d',
-              muted: '#7e9cb8'
+              cyan: '#10b981',
+              dark: '#09090b',
+              surface: '#1b1b20',
+              card: '#121215',
+              border: '#27272f',
+              muted: '#8e8e99'
             }
           },
           fontFamily: {
@@ -37,8 +37,8 @@
   </script>
   <style>
     body {
-      background-color: #051424;
-      color: #e2ecf7;
+      background-color: #09090b;
+      color: #f4f4f6;
       font-family: 'Space Grotesk', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
@@ -104,7 +104,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-base font-bold leading-none tracking-tight text-white">AndroLog</h1>
-          <span id="header-version-badge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">v2.5.0</span>
+          <span id="header-version-badge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">v3.0.0</span>
         </div>
         <p class="text-[11px] text-brand-muted mt-0.5" id="header-subtitle">GameDay Men's Health • AccessLabs</p>
       </div>
@@ -140,7 +140,7 @@
             <p class="text-xs text-brand-muted mt-1" id="dash-compound">Testosterone Cypionate (200 mg/mL)</p>
             <div class="flex items-center gap-1.5 mt-2">
               <span class="text-[10px] font-bold bg-brand-surface text-brand-cyan px-2 py-0.5 rounded border border-brand-border" id="dash-schedule-badge">60mg Thu & Sun</span>
-              <span class="text-[10px] font-bold bg-brand-surface text-emerald-400 px-2 py-0.5 rounded border border-brand-border" id="dash-needle-badge">27g 1/2" Delt</span>
+              <span class="text-[10px] font-bold bg-brand-surface text-amber-400 px-2 py-0.5 rounded border border-brand-border" id="dash-needle-badge">27g 1/2" Delt</span>
             </div>
           </div>
           <div class="text-right">
@@ -192,13 +192,13 @@
         </div>
         <div class="flex items-center justify-between text-xs pt-0.5">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="dash-cal-sync-check" class="accent-sky-500 rounded">
+            <input type="checkbox" id="dash-cal-sync-check" class="accent-emerald-500 rounded">
             <span class="text-[11px] text-brand-muted flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-xs text-brand-cyan">event</span> Record pin to Google Calendar
+              <span class="material-symbols-outlined text-xs text-brand-cyan">event</span> Record completed pin to Google Calendar
             </span>
           </label>
         </div>
-        <button onclick="logDose()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+        <button onclick="logDose()" class="w-full bg-brand-cyan hover:bg-emerald-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
           <span class="material-symbols-outlined text-lg">check_circle</span> Confirm & Save Pin
         </button>
       </div>
@@ -220,49 +220,6 @@
 
     <!-- Tab 2: Interactive Calendar -->
     <div id="view-calendar" class="space-y-4 hidden">
-      <!-- Google Calendar Sync Header Card -->
-      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
-        <!-- Disconnected View -->
-        <div id="cal-unauth-banner" class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shrink-0">
-              <span class="material-symbols-outlined text-xl">calendar_month</span>
-            </div>
-            <div>
-              <h4 class="font-bold text-white text-xs leading-tight">Google Calendar Reminders</h4>
-              <p class="text-[11px] text-brand-muted mt-0.5">Sync Thu & Sun injection schedule to Google Calendar</p>
-            </div>
-          </div>
-          <button onclick="handleGoogleSignIn()" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold text-xs py-2 px-3 rounded-xl flex items-center gap-1 shrink-0 transition shadow-md shadow-sky-500/10">
-            <span class="material-symbols-outlined text-sm">login</span> Connect
-          </button>
-        </div>
-
-        <!-- Connected View -->
-        <div id="cal-auth-banner" class="space-y-3 hidden">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span class="text-xs font-bold text-white">Google Calendar Connected</span>
-              <span class="text-[10px] text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded border border-brand-cyan/30 font-medium" id="cal-target-badge">Primary Calendar</span>
-            </div>
-            <span class="text-[11px] text-brand-muted font-medium" id="cal-synced-count">0 in View</span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 text-xs">
-            <button onclick="syncUpcomingScheduleToGoogleCalendar(4)" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition active:scale-95 shadow-sm text-[11px]" title="Sync next 4 weeks of Thu & Sun pins">
-              <span class="material-symbols-outlined text-sm">calendar_add_on</span> 4 Wks
-            </button>
-            <button onclick="syncUpcomingScheduleToGoogleCalendar(8)" class="bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-cyan/30 font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition active:scale-95 text-[11px]" title="Sync next 8 weeks of Thu & Sun pins">
-              <span class="material-symbols-outlined text-sm">date_range</span> 8 Wks
-            </button>
-            <button onclick="fetchGoogleCalendarEvents()" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition active:scale-95 text-[11px]" title="Refresh events from Google Calendar">
-              <span class="material-symbols-outlined text-sm">refresh</span> Sync
-            </button>
-          </div>
-        </div>
-      </div>
-
       <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg">
         <div class="flex items-center justify-between mb-3">
           <button onclick="changeMonth(-1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
@@ -270,7 +227,7 @@
           </button>
           <div class="text-center">
             <h3 class="font-bold text-white text-base" id="cal-month-title">October 2026</h3>
-            <span class="text-[10px] text-brand-muted">Thu & Sun Target Pin Days • Blue dots = Google Cal</span>
+            <span class="text-[10px] text-brand-muted">Thu & Sun Protocol Target Days • Green dots = Logged Pins</span>
           </div>
           <button onclick="changeMonth(1)" class="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-brand-muted hover:text-white">
             <span class="material-symbols-outlined text-sm">chevron_right</span>
@@ -291,7 +248,7 @@
           </button>
         </div>
         <div id="cal-day-logs" class="space-y-2 text-xs"></div>
-        <div id="cal-day-google-events" class="space-y-2 text-xs pt-2 border-t border-brand-border/40"></div>
+        <div id="cal-day-google-events" class="space-y-2 text-xs pt-2 border-t border-brand-border/40 hidden"></div>
       </div>
     </div>
 
@@ -319,7 +276,7 @@
         <div class="flex items-center justify-between mb-2">
           <div>
             <h3 class="font-bold text-white text-sm">2026 Trough Trajectory (No AI)</h3>
-            <p class="text-[11px] text-brand-muted">Total T Goal: ~1000 ng/dL (Cyan) • E2 (Emerald)</p>
+            <p class="text-[11px] text-brand-muted">Total T Goal: ~1000 ng/dL (Emerald) • E2 (Violet)</p>
           </div>
           <span class="text-[10px] font-bold bg-brand-surface px-2 py-1 rounded border border-brand-border text-brand-cyan" id="lab-count-badge">5 Panels</span>
         </div>
@@ -336,6 +293,93 @@
           <span class="text-[10px] font-bold bg-amber-500/15 px-2 py-1 rounded border border-amber-500/30 text-amber-400" id="lab-dose-badge">120 mg/wk</span>
         </div>
         <div id="lab-dose-chart-container" class="w-full h-32 pt-2"></div>
+      </div>
+
+      <!-- NEW 1: Educated Guess — Estimated Serum Level at Pin & Live Now -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h3 class="font-bold text-white text-sm">Estimated Level at Pin (Pre-Dose)</h3>
+              <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">PK Calibrated</span>
+            </div>
+            <p class="text-[11px] text-brand-muted">Calibrated to your 959 ng/dL AccessLabs trough & pin spacing</p>
+          </div>
+        </div>
+
+        <!-- 3 KPI Boxes: Thu Pin Estimate, Sun Pin Estimate, Live Right Now -->
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-brand-surface p-2.5 rounded-xl border border-brand-border">
+            <span class="text-[10px] text-brand-muted font-semibold block">Thu Pin (96h)</span>
+            <span class="text-sm font-bold text-brand-cyan mt-0.5 block" id="est-thu-pin-val">~959</span>
+            <span class="text-[9px] text-brand-muted block" id="est-thu-pin-sub">ng/dL • 4d gap</span>
+          </div>
+          <div class="bg-brand-surface p-2.5 rounded-xl border border-brand-border">
+            <span class="text-[10px] text-brand-muted font-semibold block">Sun Pin (72h)</span>
+            <span class="text-sm font-bold text-amber-400 mt-0.5 block" id="est-sun-pin-val">~1,028</span>
+            <span class="text-[9px] text-brand-muted block" id="est-sun-pin-sub">ng/dL • 3d gap</span>
+          </div>
+          <div class="bg-brand-surface p-2.5 rounded-xl border border-brand-cyan/40">
+            <span class="text-[10px] text-brand-cyan font-bold block">Live Est. Now</span>
+            <span class="text-sm font-bold text-white mt-0.5 block" id="est-live-now-val">~1,110</span>
+            <span class="text-[9px] text-emerald-300 block truncate" id="est-live-now-sub">Active Phase</span>
+          </div>
+        </div>
+
+        <!-- Pre-Pin Level Across Recent Logged Pins Chart -->
+        <div>
+          <div class="flex items-center justify-between text-[10px] text-brand-muted mb-1">
+            <span>Pre-Pin Trough (Emerald) vs Post-Pin Peak (Violet) per Pin</span>
+            <span id="est-pin-chart-caption" class="font-mono text-zinc-300">Recent Pins</span>
+          </div>
+          <div id="lab-pin-estimate-chart" class="w-full h-36 pt-1"></div>
+        </div>
+      </div>
+
+      <!-- NEW 2: 7-Day Biological Cycle Graphic (Thu & Sun On-Time Schedule) -->
+      <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-white text-sm">Thu & Sun 7-Day Hormonal Cycle</h3>
+            <p class="text-[11px] text-brand-muted">Steady-state body rhythm (72h Thu→Sun • 96h Sun→Thu)</p>
+          </div>
+          <span class="text-[10px] font-bold bg-emerald-500/15 px-2 py-1 rounded border border-emerald-500/30 text-emerald-400" id="cycle-stability-badge">79% Stability</span>
+        </div>
+
+        <!-- 7-Day Dual-Wave SVG Graphic -->
+        <div id="lab-weekly-cycle-chart" class="w-full h-44 pt-1"></div>
+
+        <!-- Cycle Phase Breakdown Cards -->
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div class="bg-brand-surface p-2.5 rounded-xl border border-brand-border">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-brand-cyan">💉 Thu 12pm Pin</span>
+              <span class="font-mono text-white font-bold" id="cycle-phase-thu">959 ng/dL</span>
+            </div>
+            <p class="text-[10px] text-brand-muted mt-0.5">True weekly trough after 4-day (96h) glide from Sunday noon.</p>
+          </div>
+          <div class="bg-brand-surface p-2.5 rounded-xl border border-brand-border">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-violet-300">⚡ Fri PM Peak</span>
+              <span class="font-mono text-white font-bold" id="cycle-phase-fri">~1,218 ng/dL</span>
+            </div>
+            <p class="text-[10px] text-brand-muted mt-0.5">~28h post-Thu pin. Peak CNS drive, free T & synthesis.</p>
+          </div>
+          <div class="bg-brand-surface p-2.5 rounded-xl border border-brand-border">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-emerald-400">💉 Sun 12pm Pin</span>
+              <span class="font-mono text-white font-bold" id="cycle-phase-sun">~1,028 ng/dL</span>
+            </div>
+            <p class="text-[10px] text-brand-muted mt-0.5">Higher pre-pin base after shorter 3-day (72h) gap.</p>
+          </div>
+          <div class="bg-brand-surface p-2.5 rounded-xl border border-brand-border">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-amber-400">🔥 Mon PM Peak</span>
+              <span class="font-mono text-white font-bold" id="cycle-phase-mon">~1,265 ng/dL</span>
+            </div>
+            <p class="text-[10px] text-brand-muted mt-0.5">Weekly zenith as Sunday's 60mg stacks on 72h base.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Lab Panel Selector Pills -->
@@ -440,7 +484,7 @@
           <button
             type="submit"
             id="chat-send-btn"
-            class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-center transition shrink-0"
+            class="bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-center transition shrink-0"
           >
             <span class="material-symbols-outlined text-base">send</span>
           </button>
@@ -494,7 +538,7 @@
           <label class="text-brand-muted block text-xs mb-1">Protocol / Draw Notes</label>
           <input type="text" id="new-lab-notes" placeholder="e.g. Trough (No AI) • 120mg/wk (60mg Thu/Sun)" class="w-full bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white text-xs">
         </div>
-        <button onclick="addLabPanel()" class="w-full bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+        <button onclick="addLabPanel()" class="w-full bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
           <span class="material-symbols-outlined text-base">save</span> Save Lab Panel to History
         </button>
       </div>
@@ -513,7 +557,7 @@
         <div id="settings-site-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
         <div class="flex gap-2 text-xs pt-1">
           <input type="text" id="new-site-name" placeholder="Add site (e.g. Right Ventroglute)" class="flex-1 bg-brand-surface border border-brand-border rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-brand-cyan">
-          <button onclick="addSite()" class="bg-brand-cyan text-brand-dark px-4 rounded-xl font-bold hover:bg-sky-400 transition">Add</button>
+          <button onclick="addSite()" class="bg-brand-cyan text-brand-dark px-4 rounded-xl font-bold hover:bg-emerald-400 transition">Add</button>
         </div>
       </div>
 
@@ -526,7 +570,7 @@
             </div>
             <div>
               <h3 class="font-bold text-white text-base leading-tight">Google Workspace</h3>
-              <p class="text-[11px] text-brand-muted" id="drive-connection-status">Google Calendar reminders & Drive backups</p>
+              <p class="text-[11px] text-brand-muted" id="drive-connection-status">Google Drive backups & completed dose logs</p>
             </div>
           </div>
           <span id="drive-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surface text-brand-muted border border-brand-border">Disconnected</span>
@@ -535,7 +579,7 @@
         <!-- Not Signed In View -->
         <div id="drive-unauth-view" class="space-y-3 pt-1">
           <p class="text-xs text-brand-muted leading-relaxed">
-            Connect your Google account to sync your TRT injection schedule directly to <span class="text-white font-semibold">Google Calendar</span> and backup your dose history securely to <span class="text-white font-semibold">Google Drive</span>.
+            Connect your Google account to back up your TRT dose history and lab panels to <span class="text-white font-semibold">Google Drive</span> and optionally record completed pins to <span class="text-white font-semibold">Google Calendar</span>.
           </p>
           <div class="pt-1">
             <button class="gsi-material-button" onclick="handleGoogleSignIn()">
@@ -572,11 +616,11 @@
             </button>
           </div>
 
-          <!-- Google Calendar Protocol Settings -->
+          <!-- Google Calendar Completed Pin Logging (No Reminders / No Alarms) -->
           <div class="space-y-2.5 pt-2 border-t border-brand-border/50">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-brand-cyan uppercase tracking-wider flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">calendar_month</span> Google Calendar Sync
+                <span class="material-symbols-outlined text-sm">event_available</span> Completed Pin Log Sync
               </span>
             </div>
 
@@ -584,7 +628,7 @@
             <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
               <div>
                 <span class="text-white font-semibold block">Target Calendar</span>
-                <span class="text-brand-muted text-[11px]">Where pin events get created</span>
+                <span class="text-brand-muted text-[11px]">Where completed pins are recorded</span>
               </div>
               <select id="setting-cal-target" onchange="updateCalTargetPreference(this.value)" class="bg-brand-card text-white text-xs border border-brand-border rounded-lg px-2.5 py-1.5 focus:border-brand-cyan">
                 <option value="primary">Primary Calendar</option>
@@ -592,40 +636,17 @@
               </select>
             </div>
 
-            <!-- Default Reminder Time -->
-            <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
-              <div>
-                <span class="text-white font-semibold block">Pin Alert Time</span>
-                <span class="text-brand-muted text-[11px]">15-min notification on pin day</span>
-              </div>
-              <input type="time" id="setting-cal-time" value="08:00" onchange="updateCalTimePreference(this.value)" class="bg-brand-card text-white text-xs border border-brand-border rounded-lg px-2.5 py-1 focus:border-brand-cyan font-mono">
-            </div>
-
             <!-- Calendar Auto-Log Toggle -->
             <div class="flex items-center justify-between p-3 rounded-xl bg-brand-surface border border-brand-border text-xs">
               <div>
-                <span class="text-white font-semibold block">Auto-Sync Injections</span>
-                <span class="text-brand-muted text-[11px]">Add completed pins to Google Calendar</span>
+                <span class="text-white font-semibold block">Auto-Record Completed Pins</span>
+                <span class="text-brand-muted text-[11px]">Silently log completed doses (no alarms)</span>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="cal-auto-sync" onchange="toggleCalAutoSync(event)" class="sr-only peer">
                 <div class="w-9 h-5 bg-brand-card peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-cyan"></div>
               </label>
             </div>
-
-            <!-- Calendar Action Buttons -->
-            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-              <button onclick="syncUpcomingScheduleToGoogleCalendar(4)" class="bg-brand-surface hover:bg-brand-card text-brand-cyan border border-brand-cyan/30 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
-                <span class="material-symbols-outlined text-sm">calendar_add_on</span> Sync 4 Wks
-              </button>
-              <button onclick="syncUpcomingScheduleToGoogleCalendar(8)" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-sky-500/10">
-                <span class="material-symbols-outlined text-sm">date_range</span> Sync 8 Wks
-              </button>
-            </div>
-
-            <button onclick="confirmClearGoogleCalendarSchedule()" class="w-full text-[11px] font-semibold text-red-400/80 hover:text-red-400 py-1.5 flex items-center justify-center gap-1 transition">
-              <span class="material-symbols-outlined text-xs">delete_sweep</span> Clear Scheduled Pins from Google Calendar
-            </button>
           </div>
 
           <!-- Google Drive Cloud Backups -->
@@ -638,7 +659,7 @@
 
             <!-- Drive Actions -->
             <div class="grid grid-cols-2 gap-2 text-xs">
-              <button onclick="backupToGoogleDrive()" id="btn-backup-drive" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-sky-500/10">
+              <button onclick="backupToGoogleDrive()" id="btn-backup-drive" class="bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-500/10">
                 <span class="material-symbols-outlined text-base">cloud_upload</span> Backup to Drive
               </button>
               <button onclick="exportCSVToGoogleDrive()" id="btn-export-csv-drive" class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
@@ -711,7 +732,7 @@
             </div>
           </div>
         </div>
-        <button onclick="saveSettings()" class="w-full bg-brand-cyan hover:bg-sky-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+        <button onclick="saveSettings()" class="w-full bg-brand-cyan hover:bg-emerald-400 active:scale-[0.98] transition text-brand-dark font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
           <span class="material-symbols-outlined text-lg">save</span> Save Protocol Settings
         </button>
       </div>
@@ -724,7 +745,7 @@
             <span class="material-symbols-outlined text-sm text-brand-cyan">download</span> Export JSON
           </button>
           <label class="bg-brand-surface hover:bg-brand-card text-white border border-brand-border font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
-            <span class="material-symbols-outlined text-sm text-emerald-400">upload</span> Restore JSON
+            <span class="material-symbols-outlined text-sm text-amber-400">upload</span> Restore JSON
             <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="hidden">
           </label>
         </div>
@@ -740,7 +761,7 @@
 
       <!-- App Version & Revision Footer -->
       <div class="text-center py-2 text-[11px] text-brand-muted font-mono">
-        <span id="settings-version-text">AndroLog v2.5.0 • Precision TRT Protocol</span>
+        <span id="settings-version-text">AndroLog v3.0.0 • Precision TRT Protocol</span>
       </div>
     </div>
 
@@ -820,7 +841,7 @@
         <button onclick="closeEditDoseModal()" class="flex-1 bg-brand-surface hover:bg-brand-card text-brand-muted font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
           Cancel
         </button>
-        <button onclick="submitEditDose()" class="flex-1 bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+        <button onclick="submitEditDose()" class="flex-1 bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
           Save Changes
         </button>
       </div>
@@ -907,10 +928,10 @@
           </button>
         </div>
         <p class="text-[10px] text-brand-muted leading-relaxed">
-          Stored strictly in your device's browser vault (<code class="text-sky-300">androlog_api_key</code>). Never hardcoded or committed to GitHub. Works on GitHub Pages and Android APK.
+          Stored strictly in your device's browser vault (<code class="text-emerald-300">androlog_api_key</code>). Never hardcoded or committed to GitHub. Works on GitHub Pages and Android APK.
         </p>
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="saveApiKeyFromInput()" class="bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+          <button onclick="saveApiKeyFromInput()" class="bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
             <span class="material-symbols-outlined text-sm">lock</span> Save to Vault
           </button>
           <button onclick="clearApiKeyFromVault()" class="bg-brand-surface hover:bg-brand-card text-brand-muted hover:text-red-400 border border-brand-border font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
@@ -1018,7 +1039,7 @@
       signOut 
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
-    const APP_VERSION = '2.5.0';
+    const APP_VERSION = '3.0.0';
 
     // Defaulting directly to your Left & Right Deltoid rotation
     const DEFAULT_SITES = [
@@ -1166,7 +1187,7 @@
       } else {
         iconBg.className = 'w-10 h-10 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shrink-0';
         icon.innerText = 'help';
-        actionBtn.className = 'flex-1 bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition shadow-lg shadow-sky-500/20';
+        actionBtn.className = 'flex-1 bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20';
       }
 
       actionBtn.innerText = confirmText || 'Confirm';
@@ -1435,7 +1456,7 @@
         btn.onclick = () => { selectedLabIdx = idx; renderLabsView(); };
         btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition ${
           active
-            ? 'bg-brand-cyan text-brand-dark border-brand-cyan shadow-md shadow-sky-500/20'
+            ? 'bg-brand-cyan text-brand-dark border-brand-cyan shadow-md shadow-emerald-500/20'
             : 'bg-brand-surface text-brand-muted border-brand-border hover:text-white'
         }`;
         btn.innerText = item.date;
@@ -1512,6 +1533,8 @@
 
       renderLabChart(labs);
       renderDosageChart(labs);
+      renderPinLevelEstimator(labs);
+      renderWeeklyCycleGraphic(labs);
     }
 
     function resolveLabWeeklyDose(panel) {
@@ -1567,25 +1590,25 @@
         const yT = h - padY - ((p.totalT || 0) / maxT) * (h - padY * 2);
         tPoints.push(`${x},${yT}`);
 
-        dots += `<circle cx="${x}" cy="${yT}" r="3.5" fill="#0ea5e9" />`;
-        dots += `<text x="${x}" y="${yT - 7}" fill="#e2ecf7" font-size="9" font-weight="bold" text-anchor="middle">${Math.round(p.totalT)}</text>`;
+        dots += `<circle cx="${x}" cy="${yT}" r="3.5" fill="#10b981" />`;
+        dots += `<text x="${x}" y="${yT - 7}" fill="#f4f4f6" font-size="9" font-weight="bold" text-anchor="middle">${Math.round(p.totalT)}</text>`;
 
         if (p.e2) {
           const yE2 = h - padY - ((p.e2 * 15) / maxT) * (h - padY * 2);
           e2Points.push(`${x},${yE2}`);
-          dots += `<circle cx="${x}" cy="${yE2}" r="3" fill="#34d399" />`;
+          dots += `<circle cx="${x}" cy="${yE2}" r="3" fill="#a78bfa" />`;
         }
 
         const shortDate = p.date.slice(5);
-        labels += `<text x="${x}" y="${h - 2}" fill="#7e9cb8" font-size="9" text-anchor="middle">${shortDate}</text>`;
+        labels += `<text x="${x}" y="${h - 2}" fill="#8e8e99" font-size="9" text-anchor="middle">${shortDate}</text>`;
       });
 
       container.innerHTML = `
         <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
-          <line x1="${padX}" y1="${yGoal}" x2="${w - padX}" y2="${yGoal}" stroke="#1f344d" stroke-width="1" stroke-dasharray="4,4" />
-          <text x="${w - padX}" y="${yGoal - 3}" fill="#7e9cb8" font-size="8" text-anchor="end">1000 Goal</text>
-          <polyline fill="none" stroke="#0ea5e9" stroke-width="2.5" points="${tPoints.join(' ')}" />
-          ${e2Points.length > 1 ? `<polyline fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="3,3" points="${e2Points.join(' ')}" />` : ''}
+          <line x1="${padX}" y1="${yGoal}" x2="${w - padX}" y2="${yGoal}" stroke="#27272f" stroke-width="1" stroke-dasharray="4,4" />
+          <text x="${w - padX}" y="${yGoal - 3}" fill="#8e8e99" font-size="8" text-anchor="end">1000 Goal</text>
+          <polyline fill="none" stroke="#10b981" stroke-width="2.5" points="${tPoints.join(' ')}" />
+          ${e2Points.length > 1 ? `<polyline fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-dasharray="3,3" points="${e2Points.join(' ')}" />` : ''}
           ${dots}
           ${labels}
         </svg>
@@ -1652,9 +1675,9 @@
         dosePoints.push(`${x},${y}`);
         areaPoints.push(`${x},${y}`);
 
-        dots += `<circle cx="${x}" cy="${y}" r="3.5" fill="#f59e0b" stroke="#051424" stroke-width="1.2" />`;
+        dots += `<circle cx="${x}" cy="${y}" r="3.5" fill="#f59e0b" stroke="#09090b" stroke-width="1.2" />`;
         dots += `<text x="${x}" y="${y - 7}" fill="#fbbf24" font-size="8.5" font-weight="bold" text-anchor="middle">${d.dose}mg</text>`;
-        labels += `<text x="${x}" y="${h - 3}" fill="#7e9cb8" font-size="9" text-anchor="middle">${d.shortDate}</text>`;
+        labels += `<text x="${x}" y="${h - 3}" fill="#8e8e99" font-size="9" text-anchor="middle">${d.shortDate}</text>`;
       });
 
       areaPoints.push(`${padX + (chronological.length - 1) * stepX},${h - padY}`);
@@ -1667,12 +1690,368 @@
               <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0" />
             </linearGradient>
           </defs>
-          <line x1="${padX}" y1="${yTarget}" x2="${w - padX}" y2="${yTarget}" stroke="#1f344d" stroke-width="1" stroke-dasharray="4,4" />
-          <text x="${w - padX}" y="${yTarget - 3}" fill="#7e9cb8" font-size="7.5" text-anchor="end">${targetWeekly}mg Protocol</text>
+          <line x1="${padX}" y1="${yTarget}" x2="${w - padX}" y2="${yTarget}" stroke="#27272f" stroke-width="1" stroke-dasharray="4,4" />
+          <text x="${w - padX}" y="${yTarget - 3}" fill="#8e8e99" font-size="7.5" text-anchor="end">${targetWeekly}mg Protocol</text>
           <polygon points="${areaPoints.join(' ')}" fill="url(#doseAreaGrad)" />
           <polyline fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="${dosePoints.join(' ')}" />
           ${dots}
           ${labels}
+        </svg>
+      `;
+    }
+
+    // ----------------------------------------------------
+    // Pharmacokinetic Engine (Two-Compartment Testosterone Cypionate)
+    // Calibrated to User's AccessLabs Trough & Thu/Sun Split
+    // ----------------------------------------------------
+    const PK_KA = Math.LN2 / 0.55; // Shallow IM deltoid absorption (~13h half-life, peaks ~28h)
+    const PK_KE = Math.LN2 / 4.80; // Cypionate depot terminal elimination (~4.8d half-life)
+
+    function pkSinglePulse(daysElapsed) {
+      if (daysElapsed <= 0) return 0;
+      return Math.exp(-PK_KE * daysElapsed) - Math.exp(-PK_KA * daysElapsed);
+    }
+
+    // Compute steady-state sum at `hoursFromThu8am` (0..168) for a Thu 8am (0h) & Sun 8am (72h) schedule
+    function pkWeeklySteadyStateRaw(hoursFromThu8am, thuDoseMg, sunDoseMg) {
+      const tDays = hoursFromThu8am / 24.0;
+      let total = 0;
+      // Sum over 8 prior weeks for full depot convergence
+      for (let wk = 0; wk < 8; wk++) {
+        // Thursday pin at t = -7 * wk
+        const dtThu = tDays + 7.0 * wk;
+        if (dtThu > 0) {
+          total += thuDoseMg * pkSinglePulse(dtThu);
+        }
+        // Sunday pin at t = 3.0 - 7 * wk (72h after Thursday)
+        const dtSun = tDays - 3.0 + 7.0 * wk;
+        if (dtSun > 0) {
+          total += sunDoseMg * pkSinglePulse(dtSun);
+        }
+      }
+      return total;
+    }
+
+    function getCalibratedPkParams(labs) {
+      const cfg = getConfig();
+      const weeklyDose = parseFloat(cfg.weeklyDose) || 120;
+      const pinDose = weeklyDose / 2;
+
+      // Find latest TRT lab panel with a valid trough Total T
+      const trtPanel = labs.find(p => (p.totalT || 0) > 400 && resolveLabWeeklyDose(p) > 0) || labs[0];
+      const refTroughT = (trtPanel && trtPanel.totalT) ? Number(trtPanel.totalT) : 959;
+      const refTroughE2 = (trtPanel && trtPanel.e2) ? Number(trtPanel.e2) : 26.0;
+      const refWeeklyDose = trtPanel ? (resolveLabWeeklyDose(trtPanel) || 120) : 120;
+      const refPinDose = refWeeklyDose / 2;
+
+      // Raw steady-state value at Thursday 8am trough (168h, right before Thursday pin)
+      const rawThuTroughAtRef = pkWeeklySteadyStateRaw(168, refPinDose, refPinDose);
+      const scaleT = rawThuTroughAtRef > 0 ? (refTroughT / rawThuTroughAtRef) : 10.6;
+
+      return {
+        weeklyDose,
+        pinDose,
+        refTroughT,
+        refTroughE2,
+        scaleT,
+        e2Ratio: refTroughT > 0 ? (refTroughE2 / refTroughT) : (26.0 / 959.0)
+      };
+    }
+
+    // 1. Render Educated Guess of Serum Level at Pin & Live Now
+    function renderPinLevelEstimator(labs) {
+      const container = document.getElementById('lab-pin-estimate-chart');
+      if (!container) return;
+
+      const pk = getCalibratedPkParams(labs);
+      const thuTroughT = Math.round(pk.scaleT * pkWeeklySteadyStateRaw(168, pk.pinDose, pk.pinDose));
+      const sunTroughT = Math.round(pk.scaleT * pkWeeklySteadyStateRaw(72, pk.pinDose, pk.pinDose));
+
+      // Update Thu & Sun Pre-Pin KPI boxes
+      const thuValEl = document.getElementById('est-thu-pin-val');
+      const thuSubEl = document.getElementById('est-thu-pin-sub');
+      const sunValEl = document.getElementById('est-sun-pin-val');
+      const sunSubEl = document.getElementById('est-sun-pin-sub');
+
+      if (thuValEl) thuValEl.innerText = `~${thuTroughT}`;
+      if (thuSubEl) thuSubEl.innerText = `ng/dL • 96h gap`;
+      if (sunValEl) sunValEl.innerText = `~${sunTroughT}`;
+      if (sunSubEl) sunSubEl.innerText = `ng/dL • 72h gap`;
+
+      // Calculate Live Current Level (from actual logged doses if recent, else steady-state cycle clock)
+      const history = getHistory(); // sorted newest first
+      const nowMs = Date.now();
+      let liveT = 0;
+      let livePhase = '';
+
+      if (history.length >= 2 && (nowMs - history[0].timestamp) < 10 * 86400000) {
+        let rawSum = 0;
+        history.slice(0, 14).forEach(h => {
+          const daysAgo = (nowMs - h.timestamp) / 86400000;
+          if (daysAgo > 0 && daysAgo < 45) {
+            rawSum += (parseFloat(h.dose) || pk.pinDose) * pkSinglePulse(daysAgo);
+          }
+        });
+        // If user has fewer than 6 logged pins, blend in steady-state background tail
+        if (history.length < 6) {
+          const oldestDays = (nowMs - history[history.length - 1].timestamp) / 86400000;
+          for (let wk = 1; wk <= 5; wk++) {
+            rawSum += pk.pinDose * pkSinglePulse(oldestDays + 3.5 * wk);
+          }
+        }
+        liveT = Math.round(pk.scaleT * rawSum);
+        const hrsSinceLast = Math.round((nowMs - history[0].timestamp) / 3600000);
+        if (hrsSinceLast < 20) livePhase = `Rising (+${hrsSinceLast}h)`;
+        else if (hrsSinceLast <= 40) livePhase = `Peak (+${hrsSinceLast}h)`;
+        else if (hrsSinceLast <= 68) livePhase = `Cruise (+${hrsSinceLast}h)`;
+        else livePhase = `Trough (+${hrsSinceLast}h)`;
+      } else {
+        // Use current day/hour on the Thu 12pm / Sun 12pm cycle
+        const now = new Date();
+        const dow = now.getDay(); // 0=Sun..4=Thu
+        const hr = now.getHours() + now.getMinutes() / 60;
+        let hrsFromThuNoon = ((dow - 4 + 7) % 7) * 24 + (hr - 12);
+        if (hrsFromThuNoon < 0) hrsFromThuNoon += 168;
+        liveT = Math.round(pk.scaleT * pkWeeklySteadyStateRaw(hrsFromThuNoon, pk.pinDose, pk.pinDose));
+        const hrsSincePin = hrsFromThuNoon >= 72 ? (hrsFromThuNoon - 72) : hrsFromThuNoon;
+        if (hrsSincePin < 20) livePhase = 'Rising to Peak';
+        else if (hrsSincePin <= 40) livePhase = 'Peak Window';
+        else if (hrsSincePin <= 68) livePhase = 'Anabolic Cruise';
+        else livePhase = 'Pre-Pin Trough';
+      }
+
+      const liveValEl = document.getElementById('est-live-now-val');
+      const liveSubEl = document.getElementById('est-live-now-sub');
+      if (liveValEl) liveValEl.innerText = `~${liveT}`;
+      if (liveSubEl) liveSubEl.innerText = livePhase;
+
+      // Build series of recent pins to show Estimated Level AT Pin vs Peak After Pin
+      let pinPoints = [];
+      const chronoHistory = [...history].reverse(); // oldest -> newest
+
+      if (chronoHistory.length >= 2) {
+        const recentSlice = chronoHistory.slice(-6);
+        recentSlice.forEach((pin, idx) => {
+          const pinTime = pin.timestamp;
+          // Sum contributions from earlier pins + virtual steady-state tail before first logged pin
+          let rawBeforePin = 0;
+          chronoHistory.forEach(other => {
+            if (other.timestamp < pinTime) {
+              const dDays = (pinTime - other.timestamp) / 86400000;
+              if (dDays > 0 && dDays < 45) {
+                rawBeforePin += (parseFloat(other.dose) || pk.pinDose) * pkSinglePulse(dDays);
+              }
+            }
+          });
+          // Virtual steady-state tail prior to oldest logged pin
+          const daysFromOldest = (pinTime - chronoHistory[0].timestamp) / 86400000;
+          for (let k = 1; k <= 10; k++) {
+            rawBeforePin += pk.pinDose * pkSinglePulse(daysFromOldest + 3.5 * k);
+          }
+
+          const prePinT = Math.round(pk.scaleT * rawBeforePin);
+          // Peak ~28h (1.17d) after this pin
+          const rawAtPeak = rawBeforePin * Math.exp(-PK_KE * 1.17) + (parseFloat(pin.dose) || pk.pinDose) * pkSinglePulse(1.17);
+          const postPeakT = Math.round(pk.scaleT * rawAtPeak);
+
+          const dObj = new Date(pinTime);
+          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const shortLabel = `${dayNames[dObj.getDay()]} ${dObj.getMonth() + 1}/${dObj.getDate()}`;
+          pinPoints.push({
+            label: shortLabel,
+            dose: pin.dose,
+            prePinT,
+            postPeakT
+          });
+        });
+        const capEl = document.getElementById('est-pin-chart-caption');
+        if (capEl) capEl.innerText = `Last ${pinPoints.length} Logged Pins`;
+      } else {
+        // Simulated 6 on-time Thu & Sun pins
+        const labels = ['Thu Pin 1', 'Sun Pin 2', 'Thu Pin 3', 'Sun Pin 4', 'Thu Pin 5', 'Sun Pin 6'];
+        const friPeak = Math.round(pk.scaleT * pkWeeklySteadyStateRaw(28, pk.pinDose, pk.pinDose));
+        const monPeak = Math.round(pk.scaleT * pkWeeklySteadyStateRaw(72 + 28, pk.pinDose, pk.pinDose));
+        labels.forEach((lbl, i) => {
+          const isThu = i % 2 === 0;
+          pinPoints.push({
+            label: lbl,
+            dose: pk.pinDose,
+            prePinT: isThu ? thuTroughT : sunTroughT,
+            postPeakT: isThu ? friPeak : monPeak
+          });
+        });
+        const capEl = document.getElementById('est-pin-chart-caption');
+        if (capEl) capEl.innerText = 'On-Time Thu/Sun Model';
+      }
+
+      const w = 320, h = 128, padX = 28, padY = 20;
+      const minScale = 700;
+      const maxScale = Math.max(1400, ...pinPoints.map(p => p.postPeakT + 100));
+      const stepX = (w - padX * 2) / Math.max(1, pinPoints.length - 1);
+      const yToPx = val => h - padY - ((Math.max(minScale, val) - minScale) / (maxScale - minScale)) * (h - padY * 2);
+
+      const y1000 = yToPx(1000);
+      let preLine = [];
+      let peakLine = [];
+      let svgElements = '';
+
+      pinPoints.forEach((pt, i) => {
+        const x = padX + i * stepX;
+        const yPre = yToPx(pt.prePinT);
+        const yPeak = yToPx(pt.postPeakT);
+        preLine.push(`${x},${yPre}`);
+        peakLine.push(`${x},${yPeak}`);
+
+        // Vertical range bar connecting Pre-Pin Trough to Post-Pin Peak
+        svgElements += `<line x1="${x}" y1="${yPre}" x2="${x}" y2="${yPeak}" stroke="#10b981" stroke-opacity="0.32" stroke-width="4" stroke-linecap="round" />`;
+        // Peak dot & label
+        svgElements += `<circle cx="${x}" cy="${yPeak}" r="3" fill="#a78bfa" />`;
+        svgElements += `<text x="${x}" y="${yPeak - 6}" fill="#c4b5fd" font-size="8" font-weight="bold" text-anchor="middle">${pt.postPeakT}</text>`;
+        // Pre-Pin dot & label
+        svgElements += `<circle cx="${x}" cy="${yPre}" r="4" fill="#10b981" stroke="#09090b" stroke-width="1.2" />`;
+        svgElements += `<text x="${x}" y="${yPre + 12}" fill="#34d399" font-size="8.5" font-weight="bold" text-anchor="middle">${pt.prePinT}</text>`;
+        // Date/day label at bottom
+        svgElements += `<text x="${x}" y="${h - 2}" fill="#8e8e99" font-size="8" text-anchor="middle">${pt.label}</text>`;
+      });
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
+          <line x1="${padX}" y1="${y1000}" x2="${w - padX}" y2="${y1000}" stroke="#27272f" stroke-width="1" stroke-dasharray="3,3" />
+          <text x="${w - padX}" y="${y1000 - 3}" fill="#8e8e99" font-size="7.5" text-anchor="end">1000 ng/dL</text>
+          <polyline fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="3,3" points="${peakLine.join(' ')}" />
+          <polyline fill="none" stroke="#10b981" stroke-width="2.2" points="${preLine.join(' ')}" />
+          ${svgElements}
+        </svg>
+      `;
+    }
+
+    // 2. Render 7-Day Thu & Sun Steady-State Hormonal Cycle Graphic
+    function renderWeeklyCycleGraphic(labs) {
+      const container = document.getElementById('lab-weekly-cycle-chart');
+      if (!container) return;
+
+      const pk = getCalibratedPkParams(labs);
+      const w = 320, h = 150, padX = 24, padY = 22;
+
+      // Sample 56 points across 168 hours (every 3 hours from Thu 12:00 PM to next Thu 12:00 PM)
+      const samples = [];
+      for (let hr = 0; hr <= 168; hr += 3) {
+        const rawT = pkWeeklySteadyStateRaw(hr, pk.pinDose, pk.pinDose);
+        const totalT = pk.scaleT * rawT;
+        // Estradiol follows aromatization with ~12h phase lag
+        const e2Hr = (hr - 12 + 168) % 168;
+        const rawE2 = pkWeeklySteadyStateRaw(e2Hr, pk.pinDose, pk.pinDose);
+        const e2 = pk.scaleT * rawE2 * pk.e2Ratio;
+        samples.push({ hr, totalT, e2 });
+      }
+
+      const thuTrough = Math.round(samples[0].totalT);
+      const friPeak = Math.round(Math.max(...samples.filter(s => s.hr <= 72).map(s => s.totalT)));
+      const sunTrough = Math.round(samples.find(s => s.hr === 72)?.totalT || 1028);
+      const monPeak = Math.round(Math.max(...samples.filter(s => s.hr >= 72).map(s => s.totalT)));
+
+      // Update phase breakdown numbers
+      const pThu = document.getElementById('cycle-phase-thu');
+      const pFri = document.getElementById('cycle-phase-fri');
+      const pSun = document.getElementById('cycle-phase-sun');
+      const pMon = document.getElementById('cycle-phase-mon');
+      const stabBadge = document.getElementById('cycle-stability-badge');
+
+      if (pThu) pThu.innerText = `${thuTrough} ng/dL`;
+      if (pFri) pFri.innerText = `~${friPeak} ng/dL`;
+      if (pSun) pSun.innerText = `~${sunTrough} ng/dL`;
+      if (pMon) pMon.innerText = `~${monPeak} ng/dL`;
+      if (stabBadge && monPeak > 0) {
+        const stabilityPct = Math.round((thuTrough / monPeak) * 100);
+        stabBadge.innerText = `${stabilityPct}% Trough/Peak Stability`;
+      }
+
+      const minY = Math.min(750, thuTrough - 120);
+      const maxY = Math.max(1380, monPeak + 90);
+      const xOfHr = hr => padX + (hr / 168) * (w - padX * 2);
+      const yOfT = val => h - padY - ((val - minY) / (maxY - minY)) * (h - padY * 2);
+
+      let tCurvePoints = [];
+      let tAreaPoints = [`${padX},${h - padY}`];
+      let e2CurvePoints = [];
+
+      samples.forEach(s => {
+        const x = xOfHr(s.hr).toFixed(1);
+        const yT = yOfT(s.totalT).toFixed(1);
+        tCurvePoints.push(`${x},${yT}`);
+        tAreaPoints.push(`${x},${yT}`);
+
+        // Map E2 (pg/mL) into visual band near bottom third of chart
+        const e2Scaled = minY + (s.e2 - 15) * 18;
+        const yE2 = yOfT(e2Scaled).toFixed(1);
+        e2CurvePoints.push(`${x},${yE2}`);
+      });
+      tAreaPoints.push(`${(w - padX).toFixed(1)},${h - padY}`);
+
+      // Day tick labels along bottom: Thu, Fri, Sat, Sun, Mon, Tue, Wed, Thu
+      const dayLabels = ['THU', 'FRI', 'SAT', 'SUN', 'MON', 'TUE', 'WED', 'THU'];
+      let dayAxisSvg = '';
+      dayLabels.forEach((dLbl, idx) => {
+        const hr = idx * 24;
+        const x = xOfHr(hr);
+        const isPinDay = (idx === 0 || idx === 3 || idx === 7);
+        dayAxisSvg += `<line x1="${x}" y1="${padY}" x2="${x}" y2="${h - padY}" stroke="${isPinDay ? '#10b981' : '#27272f'}" stroke-opacity="${isPinDay ? '0.45' : '0.45'}" stroke-width="1" stroke-dasharray="${isPinDay ? '2,2' : '1,3'}" />`;
+        dayAxisSvg += `<text x="${x}" y="${h - 4}" fill="${isPinDay ? '#34d399' : '#8e8e99'}" font-size="8" font-weight="${isPinDay ? 'bold' : 'normal'}" text-anchor="middle">${dLbl}</text>`;
+      });
+
+      // Key milestone callout dots (Thu 12pm Trough, Fri Peak, Sun 12pm Pin, Mon Peak)
+      const xThu = xOfHr(0), yThu = yOfT(thuTrough);
+      const xFri = xOfHr(28), yFri = yOfT(friPeak);
+      const xSun = xOfHr(72), ySun = yOfT(sunTrough);
+      const xMon = xOfHr(100), yMon = yOfT(monPeak);
+
+      // Current live time position on the 7-day Thu 12pm -> Thu 12pm cycle
+      const now = new Date();
+      const dow = now.getDay();
+      const hrNow = now.getHours() + now.getMinutes() / 60;
+      let liveCycleHr = ((dow - 4 + 7) % 7) * 24 + (hrNow - 12);
+      if (liveCycleHr < 0) liveCycleHr += 168;
+      const xNow = xOfHr(liveCycleHr);
+      const liveNowT = pk.scaleT * pkWeeklySteadyStateRaw(liveCycleHr, pk.pinDose, pk.pinDose);
+      const yNow = yOfT(liveNowT);
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
+          <defs>
+            <linearGradient id="cycleWaveGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0.30" />
+              <stop offset="100%" stop-color="#10b981" stop-opacity="0.02" />
+            </linearGradient>
+          </defs>
+
+          ${dayAxisSvg}
+
+          <!-- Area & Curves -->
+          <polygon points="${tAreaPoints.join(' ')}" fill="url(#cycleWaveGrad)" />
+          <polyline fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-dasharray="3,3" points="${e2CurvePoints.join(' ')}" />
+          <polyline fill="none" stroke="#10b981" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" points="${tCurvePoints.join(' ')}" />
+
+          <!-- Thu 12pm Pin Marker -->
+          <circle cx="${xThu}" cy="${yThu}" r="3.5" fill="#10b981" stroke="#09090b" stroke-width="1.2" />
+          <text x="${xThu + 4}" y="${yThu + 11}" fill="#34d399" font-size="8" font-weight="bold" text-anchor="start">💉 ${thuTrough}</text>
+
+          <!-- Fri Peak Marker -->
+          <circle cx="${xFri}" cy="${yFri}" r="3.5" fill="#a78bfa" stroke="#09090b" stroke-width="1.2" />
+          <text x="${xFri}" y="${yFri - 6}" fill="#f4f4f6" font-size="8.5" font-weight="bold" text-anchor="middle">Peak ~${friPeak}</text>
+
+          <!-- Sun 12pm Pin Marker -->
+          <circle cx="${xSun}" cy="${ySun}" r="3.5" fill="#10b981" stroke="#09090b" stroke-width="1.2" />
+          <text x="${xSun}" y="${ySun + 12}" fill="#34d399" font-size="8" font-weight="bold" text-anchor="middle">💉 ${sunTrough}</text>
+
+          <!-- Mon Peak Marker -->
+          <circle cx="${xMon}" cy="${yMon}" r="3.5" fill="#fbbf24" stroke="#09090b" stroke-width="1.2" />
+          <text x="${xMon}" y="${yMon - 6}" fill="#fbbf24" font-size="8.5" font-weight="bold" text-anchor="middle">Peak ~${monPeak}</text>
+
+          <!-- Live "YOU ARE HERE" Marker -->
+          <line x1="${xNow}" y1="${padY}" x2="${xNow}" y2="${h - padY}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="2,2" />
+          <circle cx="${xNow}" cy="${yNow}" r="4.5" fill="#f59e0b" stroke="#09090b" stroke-width="1.5" />
+          <rect x="${Math.min(w - 52, Math.max(4, xNow - 24))}" y="${padY - 14}" width="48" height="12" rx="4" fill="#f59e0b" />
+          <text x="${Math.min(w - 28, Math.max(28, xNow))}" y="${padY - 5.5}" fill="#09090b" font-size="7" font-weight="bold" text-anchor="middle">NOW ~${Math.round(liveNowT)}</text>
         </svg>
       `;
     }
@@ -1779,9 +2158,9 @@
           dotColor = 'bg-amber-400';
           subtext = 'Resting until next cycle';
         } else if (i > 0 && rank !== undefined) {
-          badge = '<span class="text-xs font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded">Rested</span>';
-          borderColor = 'border-sky-500/30';
-          dotColor = 'bg-sky-400';
+          badge = '<span class="text-xs font-semibold text-zinc-300 bg-zinc-500/15 px-2 py-0.5 rounded">Rested</span>';
+          borderColor = 'border-zinc-700';
+          dotColor = 'bg-zinc-400';
           subtext = 'Available in rotation';
         }
 
@@ -1839,9 +2218,8 @@
         const isTargetPinDay = (dow === 0 || dow === 4);
         const ymd = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const hasPins = pinMap[ymd] && pinMap[ymd].length > 0;
-        const calEvents = googleCalEventsByDate[ymd] || [];
+        const calEvents = (googleCalEventsByDate[ymd] || []).filter(e => e.type === 'completed');
         const hasCalEvents = calEvents.length > 0;
-        const hasCompletedCal = calEvents.some(e => e.type === 'completed');
         const isSelected = ymd === selectedCalDateStr;
 
         const baseStyle = isSelected
@@ -1849,16 +2227,14 @@
           : hasPins
             ? 'bg-brand-surface text-white font-bold border-brand-cyan/70'
             : hasCalEvents
-              ? 'bg-brand-surface text-sky-200 border-sky-400/50'
+              ? 'bg-brand-surface text-emerald-200 border-emerald-500/40'
               : isTargetPinDay
-                ? 'bg-brand-surface/90 text-slate-200 border-brand-cyan/25'
+                ? 'bg-brand-surface/90 text-zinc-200 border-brand-cyan/25'
                 : 'bg-brand-surface/40 text-brand-muted border-brand-border/30';
 
         let dot = '';
-        if (hasPins) {
+        if (hasPins || hasCalEvents) {
           dot = `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : 'bg-brand-cyan'} mx-auto mt-0.5 block"></span>`;
-        } else if (hasCalEvents) {
-          dot = `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-dark' : (hasCompletedCal ? 'bg-emerald-400' : 'bg-sky-400')} mx-auto mt-0.5 block" title="Google Calendar Event"></span>`;
         } else if (isTargetPinDay) {
           dot = `<span class="w-1 h-1 rounded-full bg-brand-muted/40 mx-auto mt-0.5 block"></span>`;
         } else {
@@ -1916,47 +2292,26 @@
       const gContainer = document.getElementById('cal-day-google-events');
       if (!gContainer) return;
 
-      const events = googleCalEventsByDate[selectedCalDateStr] || [];
+      const events = (googleCalEventsByDate[selectedCalDateStr] || []).filter(e => e.type === 'completed');
       const isAuth = !!currentUser && !!cachedAccessToken;
 
-      if (!isAuth) {
-        gContainer.innerHTML = `
-          <div class="flex items-center justify-between py-1 text-xs text-brand-muted">
-            <span class="flex items-center gap-1 text-[11px]">
-              <span class="material-symbols-outlined text-xs text-brand-cyan">event</span> Google Calendar sync disconnected
-            </span>
-            <button onclick="handleGoogleSignIn()" class="text-brand-cyan font-bold hover:underline text-[11px]">Connect</button>
-          </div>
-        `;
+      if (!isAuth || events.length === 0) {
+        gContainer.classList.add('hidden');
+        gContainer.innerHTML = '';
         return;
       }
 
-      if (events.length === 0) {
-        gContainer.innerHTML = `
-          <div class="flex items-center justify-between py-1">
-            <span class="text-[11px] text-brand-muted">No Google Calendar alert for ${selectedCalDateStr}</span>
-            <button onclick="schedulePinOnSelectedDateToGoogleCalendar()" class="text-[11px] font-bold text-brand-cyan hover:underline flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs">calendar_add_on</span> Schedule Pin Alert
-            </button>
-          </div>
-        `;
-        return;
-      }
-
-      let html = `<div class="space-y-1.5"><span class="text-[10px] font-bold uppercase tracking-wider text-brand-cyan block">Google Calendar Events</span>`;
+      gContainer.classList.remove('hidden');
+      let html = `<div class="space-y-1.5"><span class="text-[10px] font-bold uppercase tracking-wider text-brand-cyan block">Google Calendar Recorded Pins</span>`;
       events.forEach(ev => {
-        const isCompleted = ev.type === 'completed';
-        const icon = isCompleted ? 'check_circle' : 'alarm';
-        const colorClass = isCompleted ? 'text-emerald-400' : 'text-brand-cyan';
-
         html += `
           <div class="flex items-center justify-between p-2.5 rounded-xl bg-brand-surface border border-brand-border">
             <div class="min-w-0 pr-2">
               <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-xs ${colorClass}">${icon}</span>
+                <span class="material-symbols-outlined text-xs text-brand-cyan">check_circle</span>
                 <span class="font-bold text-white text-xs truncate">${ev.summary}</span>
               </div>
-              <span class="text-[11px] text-brand-muted block mt-0.5">${ev.startStr} • ${isCompleted ? 'Completed Injection' : 'Scheduled Reminder'}</span>
+              <span class="text-[11px] text-brand-muted block mt-0.5">${ev.startStr} • Completed Injection</span>
             </div>
             <div class="flex items-center gap-1 shrink-0">
               <button onclick="confirmDeleteGoogleCalendarEvent('${ev.id}', '${ev.summary.replace(/'/g, "\\'")}')" class="text-brand-muted hover:text-red-400 p-1.5 rounded-lg bg-brand-card hover:bg-red-500/10 transition" title="Delete from Google Calendar">
@@ -1971,7 +2326,7 @@
     }
 
     function jumpToLogForSelectedDate() {
-      document.getElementById('input-date').value = `${selectedCalDateStr}T08:00`;
+      document.getElementById('input-date').value = `${selectedCalDateStr}T12:00`;
       switchTab('dashboard');
       document.getElementById('log-dose-card').scrollIntoView({ behavior: 'smooth' });
     }
@@ -2423,10 +2778,10 @@
           statusBadge.innerText = 'Disconnected';
           statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surface text-brand-muted border border-brand-border';
         }
-        if (connStatus) connStatus.innerText = 'Google Calendar reminders & Drive backups';
+        if (connStatus) connStatus.innerText = 'Google Drive backups & completed dose logs';
         if (headerLabel) headerLabel.innerText = 'Google';
         if (headerDot) {
-          headerDot.className = 'w-2 h-2 rounded-full bg-slate-500';
+          headerDot.className = 'w-2 h-2 rounded-full bg-zinc-500';
         }
       }
     }
@@ -2676,7 +3031,7 @@
         </div>
       `;
       actions.innerHTML = `
-        <a href="https://console.firebase.google.com/project/trt-tracker-1b1a6/authentication/settings" target="_blank" rel="noopener noreferrer" class="flex-1 text-center bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+        <a href="https://console.firebase.google.com/project/trt-tracker-1b1a6/authentication/settings" target="_blank" rel="noopener noreferrer" class="flex-1 text-center bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
           Open Firebase Console
         </a>
         <button onclick="closeAuthHelpModal()" class="bg-brand-surface hover:bg-brand-card text-brand-muted font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
@@ -2697,13 +3052,13 @@
       subtitle.innerText = 'Sign-In Window Blocked';
       body.innerHTML = `
         <p>Your browser or mobile webview prevented the Google Sign-In popup from opening.</p>
-        <p class="text-slate-300 text-[11px]">You can complete the sign-in using standard full-screen redirection instead.</p>
+        <p class="text-zinc-300 text-[11px]">You can complete the sign-in using standard full-screen redirection instead.</p>
       `;
       actions.innerHTML = `
         <button onclick="closeAuthHelpModal()" class="flex-1 bg-brand-surface hover:bg-brand-card text-brand-muted font-bold py-2.5 px-3 rounded-xl border border-brand-border text-xs transition">
           Cancel
         </button>
-        <button onclick="signInWithRedirectFlow()" class="flex-1 bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+        <button onclick="signInWithRedirectFlow()" class="flex-1 bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
           Use Redirect
         </button>
       `;
@@ -2721,10 +3076,10 @@
       subtitle.innerText = 'Google Security Policy';
       body.innerHTML = `
         <p>Google blocks sign-ins from embedded WebViews without updated user-agent headers (<span class="font-mono text-amber-400">403 disallowed_useragent</span>).</p>
-        <p class="text-slate-300 text-[11px]">We have updated the GitHub APK build workflow with the WebView fix. Pushing an update and rebuilding your APK via GitHub Actions resolves this!</p>
+        <p class="text-zinc-300 text-[11px]">We have updated the GitHub APK build workflow with the WebView fix. Pushing an update and rebuilding your APK via GitHub Actions resolves this!</p>
       `;
       actions.innerHTML = `
-        <button onclick="closeAuthHelpModal()" class="w-full bg-brand-cyan hover:bg-sky-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
+        <button onclick="closeAuthHelpModal()" class="w-full bg-brand-cyan hover:bg-emerald-400 text-brand-dark font-bold py-2.5 px-3 rounded-xl text-xs transition">
           Got It
         </button>
       `;
@@ -3165,7 +3520,7 @@
     }
 
     function getCalReminderTime() {
-      return localStorage.getItem('androlog_cal_time') || '08:00';
+      return localStorage.getItem('androlog_cal_time') || '12:00';
     }
 
     function updateCalTimePreference(val) {
@@ -3537,6 +3892,10 @@
           end: {
             dateTime: endDt.toISOString(),
             timeZone: tz
+          },
+          reminders: {
+            useDefault: false,
+            overrides: []
           },
           extendedProperties: {
             private: {
@@ -3935,7 +4294,7 @@
         .replace(/>/g, '&gt;');
       return escaped
         .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em class="text-sky-200">$1</em>')
+        .replace(/\*(.+?)\*/g, '<em class="text-emerald-200">$1</em>')
         .replace(/\n/g, '<br>');
     }
 
